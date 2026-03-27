@@ -78,41 +78,182 @@ def normalize_query(text: str) -> str:
         print(f"\033[93m    [CORRECTION] '{text}' → '{result}'\033[0m")
     return result
 
-# ── Zero-Latency Fast Paths (UI Mockups) ──────────────────────
+# ── Zero-Latency Fast Paths: Expanded 30+ Banking FAQ Cache ─────
+# These questions return INSTANTLY without any LLM call.
 FAST_PATH_CACHE = {
-    "FD interest rate kya hai": {
-        "en": "Our current Fixed Deposit interest rate is up to 7.1% per annum for general citizens.",
-        "hi": "हमारे फिक्स्ड डिपॉजिट पर सामान्य नागरिकों के लिए 7.1% तक की ब्याज दर है।"
+    # Fixed Deposit
+    "fd interest rate": {
+        "en": "Our Fixed Deposit rates are: 1 year – 6.8%, 2 years – 7.0%, 3 years – 7.1%. Senior citizens get an extra 0.5%.",
+        "hi": "हमारी फिक्स्ड डिपॉजिट दरें हैं: 1 साल – 6.8%, 2 साल – 7.0%, 3 साल – 7.1%. वरिष्ठ नागरिकों को 0.5% अतिरिक्त मिलता है।"
     },
-    "savings account kholne ke liye kya chahiye": {
-        "en": "To open a savings account, you need your Aadhaar card, PAN card, and 2 passport-size photos.",
-        "hi": "बचत खाता खोलने के लिए आपको अपना आधार कार्ड, पैन कार्ड और 2 पासपोर्ट साइज फोटो चाहिए।"
+    "savings account": {
+        "en": "To open a savings account: Aadhaar card, PAN card, and 2 passport-size photos. Minimum balance Rs 1,000.",
+        "hi": "बचत खाता खोलने के लिए: आधार कार्ड, पैन कार्ड, 2 पासपोर्ट फोटो। न्यूनतम बैलेंस Rs 1,000।"
     },
-    "ATM card block karna hai": {
-        "en": "I have blocked your ATM card. The new card will be dispatched to your registered address within 3 days.",
-        "hi": "मैंने आपका एटीएम कार्ड ब्लॉक कर दिया है। नया कार्ड 3 दिनों के भीतर आपके पते पर भेज दिया जाएगा।"
+    "atm card block": {
+        "en": "To block your ATM card, call 1800-XXX-XXXX or visit the branch. A new card will be dispatched in 3 days.",
+        "hi": "ATM कार्ड ब्लॉक करने के लिए 1800-XXX-XXXX पर कॉल करें या शाखा आएं। नया कार्ड 3 दिनों में आएगा।"
     },
-    "branch timing kya hai": {
-        "en": "The branch is open from 10:00 AM to 4:00 PM on all weekdays, and up to 1:00 PM on 1st, 3rd and 5th Saturdays.",
-        "hi": "शाखा सुबह 10:00 बजे से शाम 4:00 बजे तक और पहले, तीसरे और पांचवें शनिवार को दोपहर 1:00 बजे तक खुली रहती है।"
+    "branch timing": {
+        "en": "Branch hours: Monday to Friday 10:00 AM – 4:00 PM. 1st, 3rd, 5th Saturday 10:00 AM – 1:00 PM.",
+        "hi": "शाखा समय: सोमवार से शुक्रवार 10 बजे से 4 बजे। 1, 3, 5वें शनिवार 10 बजे से 1 बजे।"
     },
-    "home loan ki jankari": {
-        "en": "We offer home loans starting from 8.5% interest rate with a tenure of up to 30 years.",
-        "hi": "हम 8.5% ब्याज दर से शुरू होने वाले होम लोन देते हैं, जिसकी अवधि 30 साल तक होती है।"
+    "home loan": {
+        "en": "Home loans start at 8.5% per annum, up to 30 years tenure. Documents needed: Aadhaar, PAN, salary slips, property papers.",
+        "hi": "होम लोन 8.5% प्रति वर्ष से शुरू, 30 साल तक की अवधि। जरूरी दस्तावेज: आधार, पैन, सैलरी स्लिप, संपत्ति दस्तावेज।"
     },
-    "Jan Dhan account kya hota hai": {
-        "en": "A Jan Dhan account is a zero-balance savings account providing financial access with free Rupay debit card.",
-        "hi": "जन धन खाता एक जीरो-बैलेंस बचत खाता है जिसमें मुफ्त रुपे डेबिट कार्ड की सुविधा मिलती है।"
+    "jan dhan": {
+        "en": "Jan Dhan account is a zero-balance account with free Rupay debit card, Rs 2 lakh accident insurance, and overdraft up to Rs 10,000.",
+        "hi": "जन धन खाता जीरो-बैलेंस खाता है जिसमें मुफ्त रुपे डेबिट कार्ड, 2 लाख दुर्घटना बीमा और 10,000 ओवरड्राफ्ट मिलता है।"
     },
-    "gold loan chahiye": {
-        "en": "You can pledge your gold jewelry for an instant loan with interest rates starting at 9.2%.",
-        "hi": "आप अपने सोने के आभूषण गिरवी रखकर 9.2% ब्याज दर से तुरंत ऋण प्राप्त कर सकते हैं।"
+    "gold loan": {
+        "en": "Gold loans are available at 9.2% interest. You can get up to 75% of the gold value instantly.",
+        "hi": "गोल्ड लोन 9.2% ब्याज पर उपलब्ध है। आप सोने के मूल्य का 75% तुरंत प्राप्त कर सकते हैं।"
     },
-    "mudra loan kaise milega": {
-        "en": "Mudra loans require a solid business plan and GST registration. Please visit the branch for the exact paperwork.",
-        "hi": "मुद्रा लोन के लिए एक ठोस व्यापार योजना और जीएसटी पंजीकरण की आवश्यकता होती है। कागजी कार्रवाई के लिए कृपया शाखा आएं।"
-    }
+    "mudra loan": {
+        "en": "Mudra Loan under Pradhan Mantri scheme: Shishu (up to Rs 50,000), Kishore (up to Rs 5 lakh), Tarun (up to Rs 10 lakh). Required: business plan and GST.",
+        "hi": "मुद्रा लोन: शिशु (50,000 तक), किशोर (5 लाख), तरुण (10 लाख)। बिज़नेस प्लान और GST जरूरी।"
+    },
+    "kyc": {
+        "en": "For KYC update, you need Aadhaar card, PAN card, and one passport-size photo. Please visit the branch in person.",
+        "hi": "KYC अपडेट के लिए आधार कार्ड, पैन कार्ड और एक पासपोर्ट फोटो चाहिए। कृपया शाखा में आएं।"
+    },
+    "personal loan": {
+        "en": "Personal loans start from 10.5% interest for salaried employees. Maximum Rs 10 lakh, tenure up to 5 years.",
+        "hi": "पर्सनल लोन 10.5% से शुरू। अधिकतम 10 लाख, 5 साल तक की अवधि।"
+    },
+    "education loan": {
+        "en": "Education loans up to Rs 15 lakh for higher studies in India and Rs 20 lakh for abroad. Interest starts at 8.95%.",
+        "hi": "शिक्षा ऋण भारत में 15 लाख और विदेश के लिए 20 लाख तक। ब्याज 8.95% से।"
+    },
+    "cibil score": {
+        "en": "A CIBIL score above 750 is considered excellent. Scores below 600 may affect loan approval. Check your score free at CIBIL.com.",
+        "hi": "750 से ऊपर CIBIL स्कोर उत्कृष्ट माना जाता है। 600 से कम स्कोर लोन पर असर डाल सकता है।"
+    },
+    "upi": {
+        "en": "UPI transfers are free and instant, available 24/7. Daily limit is Rs 1 lakh per transaction. Use BHIM, PhonePe or Google Pay.",
+        "hi": "UPI ट्रांसफर मुफ्त और तत्काल है, 24/7 उपलब्ध। दैनिक सीमा 1 लाख प्रति लेनदेन।"
+    },
+    "neft rtgs": {
+        "en": "NEFT works batch-wise (24/7 since Dec 2019). RTGS is for transfers above Rs 2 lakh and is real-time. Both are free digitally.",
+        "hi": "NEFT बैच में काम करती है (24/7)। RTGS 2 लाख से ऊपर के तुरंत ट्रांसफर के लिए है।"
+    },
+    "sukanya samriddhi": {
+        "en": "Sukanya Samriddhi Yojana gives 8.2% interest for girl child. Open for girls below 10 years. Minimum Rs 250/year.",
+        "hi": "सुकन्या समृद्धि योजना बालिकाओं के लिए 8.2% ब्याज देती है। 10 साल से कम उम्र की बालिकाओं के लिए।"
+    },
+    "ppf": {
+        "en": "PPF (Public Provident Fund) offers 7.1% tax-free returns. Rs 500 to Rs 1.5 lakh per year. Lock-in of 15 years.",
+        "hi": "PPF 7.1% टैक्स-फ्री रिटर्न देता है। न्यूनतम Rs 500, अधिकतम Rs 1.5 लाख प्रति वर्ष। 15 साल का लॉक-इन।"
+    },
+    "locker": {
+        "en": "Bank locker rent ranges from Rs 1,500 to Rs 8,000 per year depending on size. Visit the branch for availability.",
+        "hi": "बैंक लॉकर किराया आकार के अनुसार 1,500 से 8,000 रुपये प्रति वर्ष। उपलब्धता के लिए शाखा आएं।"
+    },
+    "cheque book": {
+        "en": "New cheque book request can be made via net banking, mobile app, or at the branch. Delivered to your registered address in 5-7 days.",
+        "hi": "नई चेकबुक नेट बैंकिंग, मोबाइल ऐप या शाखा से मांगी जा सकती है। 5-7 दिनों में पते पर आती है।"
+    },
+    "recurring deposit": {
+        "en": "Recurring Deposit (RD) allows monthly savings from Rs 100. Tenure 6 months to 10 years. Interest rate: 6.5% to 7.5%.",
+        "hi": "रेकरिंग डिपॉजिट में मासिक Rs 100 से बचत। 6 महीने से 10 साल की अवधि। ब्याज दर: 6.5% से 7.5%।"
+    },
+    "current account": {
+        "en": "Current accounts are for businesses. No limit on transactions. Minimum balance Rs 10,000. No interest paid on balance.",
+        "hi": "करंट अकाउंट व्यवसाय के लिए है। असीमित लेनदेन। न्यूनतम बैलेंस Rs 10,000। बैलेंस पर ब्याज नहीं।"
+    },
+    "net banking": {
+        "en": "Register for net banking at the branch or via mobile app. You can check balance, transfer funds, pay bills 24/7.",
+        "hi": "नेट बैंकिंग शाखा या मोबाइल ऐप से पंजीकृत करें। बैलेंस चेक, फंड ट्रांसफर, बिल पेमेंट 24/7।"
+    },
+    "interest rate": {
+        "en": "Our key rates: Savings 3.5%, FD 6.8–7.1%, Home Loan 8.5%, Personal Loan 10.5%, Gold Loan 9.2%.",
+        "hi": "मुख्य ब्याज दरें: बचत 3.5%, FD 6.8–7.1%, होम लोन 8.5%, पर्सनल लोन 10.5%, गोल्ड लोन 9.2%।"
+    },
+    "complaint": {
+        "en": "Lodge a complaint at the branch, via net banking, or email care@bank.in. Grievance redressal within 2 working days.",
+        "hi": "शिकायत शाखा में, नेट बैंकिंग पर, या care@bank.in पर दर्ज करें। 2 कार्य दिवसों में समाधान।"
+    },
+    "balance": {
+        "en": "Check your account balance via SMS (BAL to 567xx), missed call (1800-xxx-xxx), or net banking.",
+        "hi": "बैलेंस SMS (BAL to 567xx), मिस्ड कॉल (1800-xxx-xxx), या नेट बैंकिंग से देखें।"
+    },
+    "loan eligibility": {
+        "en": "Loan eligibility depends on your income, CIBIL score (>700 preferred), age (21–60 years), and employment stability.",
+        "hi": "लोन योग्यता: आय, CIBIL स्कोर (700 से अधिक), उम्र (21–60 वर्ष), और रोजगार स्थिरता पर निर्भर।"
+    },
+    "pm vishwakarma": {
+        "en": "PM Vishwakarma scheme provides collateral-free loans to artisans at 5% interest, up to Rs 3 lakh.",
+        "hi": "PM विश्वकर्मा योजना कारीगरों को 5% ब्याज पर 3 लाख तक बिना जमानत के लोन देती है।"
+    },
+    "atal pension": {
+        "en": "Atal Pension Yojana gives guaranteed pension from Rs 1,000 to Rs 5,000/month after age 60. Join via bank account.",
+        "hi": "अटल पेंशन योजना 60 वर्ष बाद Rs 1,000 से Rs 5,000/माह की गारंटीड पेंशन देती है।"
+    },
+    "kisan credit card": {
+        "en": "Kisan Credit Card provides short-term credit for farmers up to Rs 3 lakh at 7% interest, with 3% subsidy.",
+        "hi": "किसान क्रेडिट कार्ड किसानों को 7% ब्याज पर 3 लाख तक क्रेडिट देता है, 3% सब्सिडी के साथ।"
+    },
+    "nri account": {
+        "en": "NRIs can open NRE (tax-free, repatriable) or NRO accounts. Brings foreign income home at best exchange rates.",
+        "hi": "NRI NRE (टैक्स-फ्री) या NRO खाता खोल सकते हैं। विदेशी आय सर्वोत्तम दरों पर भारत लाएं।"
+    },
+    "minimum balance": {
+        "en": "Savings account minimum balance: Rs 1,000 (rural), Rs 2,500 (semi-urban), Rs 5,000 (urban). Jan Dhan: zero balance.",
+        "hi": "बचत खाता न्यूनतम बैलेंस: Rs 1,000 (ग्रामीण), Rs 2,500 (अर्ध-शहरी), Rs 5,000 (शहरी)।"
+    },
 }
+
+# ── Fuzzy Cache Match: keywords for each cache key ────────────────
+FAST_PATH_KEYWORDS = {
+    "fd interest rate": ["fd", "fixed deposit", "interest rate", "faida", "byaj"],
+    "savings account": ["savings", "saving account", "bachat", "open account"],
+    "atm card block": ["atm", "card block", "debit card", "card band", "card lost"],
+    "branch timing": ["branch", "timing", "time", "open", "shaka", "samay"],
+    "home loan": ["home loan", "ghar", "housing", "property loan", "house"],
+    "jan dhan": ["jan dhan", "jandhan", "jandan", "zero balance", "pradhan"],
+    "gold loan": ["gold", "sona", "jewellery", "ornament"],
+    "mudra loan": ["mudra", "business loan", "startup", "vyapar"],
+    "kyc": ["kyc", "know your customer", "update kyc", "kyc karna"],
+    "personal loan": ["personal loan", "niji loan", "urgent loan"],
+    "education loan": ["education", "study loan", "college", "university", "padhai"],
+    "cibil score": ["cibil", "credit score", "score", "credit report"],
+    "upi": ["upi", "google pay", "phonepe", "bhim", "payment", "transfer"],
+    "neft rtgs": ["neft", "rtgs", "wire transfer", "bank transfer"],
+    "sukanya samriddhi": ["sukanya", "girl child", "beti", "ladki"],
+    "ppf": ["ppf", "public provident", "tax saving", "bachat yojana"],
+    "locker": ["locker", "safe deposit", "tijori"],
+    "cheque book": ["cheque", "check book", "chequebook"],
+    "recurring deposit": ["rd", "recurring", "monthly deposit", "masik"],
+    "current account": ["current account", "business account", "overdraft"],
+    "net banking": ["net banking", "internet banking", "online banking", "mobile banking"],
+    "interest rate": ["interest", "rate", "byaj", "dar", "faida"],
+    "complaint": ["complaint", "problem", "issue", "shikayat", "grievance"],
+    "balance": ["balance", "kitna", "bakiya", "check balance", "account mein"],
+    "loan eligibility": ["eligible", "eligibility", "qualify", "yogya"],
+    "pm vishwakarma": ["vishwakarma", "artisan", "karigar"],
+    "atal pension": ["atal pension", "pension", "pension yojana", "retirement"],
+    "kisan credit card": ["kisan", "farmer", "kcc", "kisaan", "agriculture"],
+    "nri account": ["nri", "nre", "nro", "foreign", "abroad", "overseas"],
+    "minimum balance": ["minimum balance", "min balance", "nyuntam"],
+}
+
+def fuzzy_fast_path(query: str, lang: str) -> Optional[str]:
+    """Check fast-path cache using keyword matching for near-instant responses."""
+    q = query.lower().strip()
+    
+    # 1. Direct substring match in cache keys
+    for key in FAST_PATH_CACHE:
+        if key in q:
+            return FAST_PATH_CACHE[key].get(lang) or FAST_PATH_CACHE[key].get("en")
+    
+    # 2. Keyword-based fuzzy match
+    for key, keywords in FAST_PATH_KEYWORDS.items():
+        if any(kw in q for kw in keywords):
+            lang_resp = FAST_PATH_CACHE.get(key, {})
+            return lang_resp.get(lang) or lang_resp.get("en")
+    
+    return None
 
 FAST_PATH_LOOKUP = {k.lower().strip(" .?!,"): k for k in FAST_PATH_CACHE.keys()}
 
@@ -236,26 +377,20 @@ class VoicePipeline:
         
         print(f"\n\033[94m==> User Input: '{user_text}'\033[0m")
 
-        # ── FAST PATH CACHE (Zero Latency) ──
-        norm_text = user_text.lower().strip(" .?!,")
-        if norm_text in FAST_PATH_LOOKUP:
-            print("\033[92m[⚡] Fast-Path Cache Hit -> Skipping LLM & RAG\033[0m")
-            orig_key = FAST_PATH_LOOKUP[norm_text]
-            ans_dict = FAST_PATH_CACHE[orig_key]
-            
-            reply_lang = "hi" if lang == "hi" else "en"
-            bot_text = ans_dict[reply_lang]
-            session.add_turn(user_text, bot_text)
-
+        # ── FAST PATH CACHE (Zero Latency — Fuzzy Keyword Match) ──
+        reply_lang = "hi" if lang == "hi" else "en"
+        fast_reply = fuzzy_fast_path(user_text, reply_lang)
+        if fast_reply:
+            print("\033[92m[⚡] Fast-Path Cache Hit (Fuzzy) -> Skipping LLM & RAG\033[0m")
+            session.add_turn(user_text, fast_reply)
             audio_b64 = None
-            wav = self.tts.synthesize(bot_text, reply_lang)
+            wav = self.tts.synthesize(fast_reply, reply_lang)
             if wav:
                 audio_b64 = base64.b64encode(wav).decode()
-
             return PipelineResult(
                 session_id=session_id,
                 user_text=user_text,
-                bot_text=bot_text,
+                bot_text=fast_reply,
                 lang=reply_lang,
                 action="answer",
                 confidence={"stt": round(stt_conf, 3), "rag": 1.0, "overall": 1.0},
@@ -266,9 +401,6 @@ class VoicePipeline:
                 turn=session.turn_count,
                 llm_model="fast-path-cache",
             )
-            print("\033[92m[✔] Pipeline Complete\033[0m\n")
-            return result
-   
 
         # 1. RAG retrieval
         corrected_text = normalize_query(user_text)
@@ -292,8 +424,22 @@ class VoicePipeline:
             llm_model   = "fallback"
             action      = "teller_alert"
             context_out = ""
+        elif rag_conf >= 0.60:
+            # ── RAG-Direct Fast Path (Zero LLM) ──
+            print(f"\033[92m[2/4] RAG-Direct Hit (sim={rag_conf:.2f}) ⚡ Skipping LLM!\033[0m")
+            best_doc = rag_result.documents[0] if rag_result.documents else user_text
+            sentences = best_doc.replace(". ", ".\n").split("\n")
+            bot_text = " ".join(s.strip() for s in sentences[:3] if s.strip())
+            if not bot_text:
+                bot_text = best_doc[:200]
+            bot_text = bot_text.rstrip(".") + ". Is there anything else I can help you with?"
+            action      = "answer"
+            context_out = rag_result.context
+            llm_model   = "rag-direct"
+            session.add_turn(user_text, bot_text)
+            print(f"\033[92m[3/4] RAG-Direct Response: '{bot_text[:100]}...'\033[0m")
         else:
-            print(f"\033[93m[2/4] Confidence OK ({overall_conf:.2f}). Starting LLM inference (may take 10-15s on CPU)...\033[0m")
+            print(f"\033[93m[2/4] Confidence OK ({overall_conf:.2f}). Starting LLM inference...\033[0m")
             
             # Resolve automatic target constraints explicitly
             active_lang = lang if target_lang == "auto" else target_lang
@@ -356,5 +502,3 @@ class VoicePipeline:
             turn         = session.turn_count,
             llm_model    = self.llm.active_model or "unavailable",
         )
-        print("\033[92m[✔] Pipeline Complete\033[0m\n")
-        return result

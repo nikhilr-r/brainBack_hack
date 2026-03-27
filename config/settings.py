@@ -18,8 +18,8 @@ class Settings:
     WHISPER_MODEL    = "small"     # small for better noisy environment handling
     WHISPER_DEVICE   = "cpu"       # cpu | cuda
     WHISPER_COMPUTE  = "int8"      # int8 | float16 | float32
-    WHISPER_LANGUAGE = "en"       # Force English by default to stop random language hallucinations
-    WHISPER_BEAM     = 5           # Higher beam = better accuracy (was 3)
+    WHISPER_LANGUAGE = None         # None = auto-detect (enables Hindi, Marathi, English)
+    WHISPER_BEAM     = 3           # Reduced from 5 for faster inference
     WHISPER_VAD      = True        # Re-enabled: filters noise/silence hallucinations
     WHISPER_PROMPT   = (
         "Bank account, savings account, current account, fixed deposit, FD, "
@@ -31,6 +31,7 @@ class Settings:
         "Atal Pension, PPF, NPS, locker, branch timing, complaint, nominee, "
         "open account, close account, transfer money, check balance"
     )
+    WHISPER_DENOISE    = True        # Elite: Apply RNNoise/Noisereduce before STT
 
     # ── LLM (Ollama) ──────────────────────────────────────────
     OLLAMA_HOST    = "http://localhost:11434"
@@ -40,14 +41,24 @@ class Settings:
     ]
     LLM_TEMPERATURE = 0.05
     LLM_TOP_P       = 0.9
-    LLM_MAX_TOKENS  = 75
-    LLM_TIMEOUT_S   = 120
+    LLM_MAX_TOKENS  = 50           # Aggressive limit — keeps answers concise AND fast
+    LLM_TIMEOUT_S   = 60
     LLM_STOP        = ["\n\n", "User:", "Human:", "Assistant:"]
 
     # ── TTS (pyttsx3 + espeak) ────────────────────────────────
     TTS_RATE         = 155         # words per minute (130=slow, 175=fast)
     TTS_VOLUME       = 0.95
     TTS_ENABLE_CACHE = True        # cache rendered WAV files to disk
+    TTS_ENGINE       = "elite"     # elite (Sherpa-ONNX) | basic (pyttsx3)
+    
+    # Elite TTS Model Paths (relative to BASE_DIR/data/models)
+    TTS_MODEL_DIR    = BASE_DIR / "data" / "models" / "tts"
+    TTS_MODELS = {
+        "en": "vits-vctk-en-piper-low.onnx", # High quality English
+        "hi": "vits-indic-hindi-female.onnx", # High quality Hindi
+        "mr": "vits-indic-marathi-female.onnx" # High quality Marathi
+    }
+    TTS_TOKENS = "tokens.txt" # Shared tokens for Indic models
 
     # ── RAG (ChromaDB + sentence-transformers) ────────────────
     EMBED_MODEL   = "all-MiniLM-L6-v2"
@@ -61,7 +72,7 @@ class Settings:
 
     # ── Session ───────────────────────────────────────────────
     SESSION_TIMEOUT_S = 120        # seconds idle before auto-reset
-    SESSION_MAX_TURNS = 2          # turns kept in context window
+    SESSION_MAX_TURNS = 1          # 1 turn = smallest context = fastest inference
 
     # ── Flask ─────────────────────────────────────────────────
     FLASK_SECRET = "brainback-algonexus-ps02"

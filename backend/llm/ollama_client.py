@@ -39,21 +39,31 @@ class OllamaClient:
             pulled_bases = [m.split(":")[0] for m in pulled]
             log.info("Ollama pulled models: %s", pulled)
 
-            # 1. Try the user's explicitly requested model FIRST
+            # 1. Try the user's explicitly requested model FIRST (Exact Match)
             primary = self.cfg.OLLAMA_MODEL
-            primary_base = primary.split(":")[0]
-            if primary in pulled or primary_base in pulled_bases:
+            if primary in pulled:
                 self.active_model = primary
-                log.info("✅ Ollama model selected (primary): %s", self.active_model)
+                log.info("✅ Ollama model selected (exact match): %s", self.active_model)
                 return self.active_model
 
-            # 2. Fall back through the configured list
+            # 2. Try the user's base name (e.g. 'phi3' matches 'phi3:mini')
+            primary_base = primary.split(":")[0]
+            if primary_base in pulled_bases:
+                for p in pulled:
+                    if p.startswith(primary_base + ":") or p == primary_base:
+                        self.active_model = p
+                        log.info("✅ Ollama model selected (base match): %s", self.active_model)
+                        return self.active_model
+
+            # 3. Fall back through the configured list
             for candidate in self.cfg.OLLAMA_FALLBACK:
                 base = candidate.split(":")[0]
                 if base in pulled_bases or candidate in pulled:
-                    self.active_model = candidate
-                    log.info("✅ Ollama model selected (fallback): %s", self.active_model)
-                    return self.active_model
+                    for p in pulled:
+                        if p.startswith(base + ":") or p == base:
+                            self.active_model = p
+                            log.info("✅ Ollama model selected (fallback): %s", self.active_model)
+                            return self.active_model
 
             log.warning("⚠️  No suitable Ollama model found. Run: ollama pull %s", primary)
             return None
@@ -95,12 +105,13 @@ class OllamaClient:
             "messages": messages,
             "stream":  False,
             "options": {
-                "num_ctx":     1024,
-                "temperature": self.cfg.LLM_TEMPERATURE,
-                "top_p":       self.cfg.LLM_TOP_P,
-                "num_predict": self.cfg.LLM_MAX_TOKENS,
-                "repeat_penalty": 1.18,
-                "stop":        self.cfg.LLM_STOP,
+                "num_ctx":        512,    # Reduced from 1024 — biggest speed lever
+                "num_predict":    35,     # Ultra-short answers = ultra-fast
+                "num_thread":     8,      # Use all CPU cores
+                "temperature":    self.cfg.LLM_TEMPERATURE,
+                "top_p":          self.cfg.LLM_TOP_P,
+                "repeat_penalty": 1.1,
+                "stop":           self.cfg.LLM_STOP,
             },
         }).encode()
 

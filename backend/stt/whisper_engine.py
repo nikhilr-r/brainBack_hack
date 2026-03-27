@@ -13,6 +13,9 @@ Responsibilities:
 import os
 import tempfile
 import logging
+import subprocess
+import numpy as np
+import soundfile as sf
 from dataclasses import dataclass
 
 log = logging.getLogger("bankbot.stt")
@@ -66,15 +69,43 @@ class WhisperEngine:
 
             print(f"\033[90m    [STT] Audio received: {len(audio_bytes)} bytes | Language override: {lang_override}\033[0m")
 
+            # ── Elite: Denoising ──
+            if self.cfg.WHISPER_DENOISE:
+                try:
+                    import noisereduce as nr
+                    
+                    # ── Robust Audio Load ──
+                    data, samplerate = None, None
+                    try:
+                        data, samplerate = sf.read(tmp_path)
+                    except Exception:
+                        # Fallback: Convert to WAV via ffmpeg
+                        wav_tmp = tmp_path.replace(".webm", ".wav")
+                        cmd = ["ffmpeg", "-y", "-i", tmp_path, "-ar", "16000", "-ac", "1", wav_tmp]
+                        subprocess.run(cmd, capture_output=True, check=True)
+                        data, samplerate = sf.read(wav_tmp)
+                        if os.path.exists(wav_tmp):
+                            os.unlink(wav_tmp)
+
+                    if data is not None:
+                        # Apply non-stationary noise reduction
+                        reduced_noise = nr.reduce_noise(y=data, sr=samplerate, prop_decrease=0.8, stationary=False)
+                        
+                        # Overwrite temp file with clean audio
+                        sf.write(tmp_path, reduced_noise, samplerate)
+                        print(f"\033[93m    [STT] Denoising applied (Elite Mode)\033[0m")
+                except Exception as de:
+                    log.warning("Denoising failed: %s (Ensure ffmpeg is in PATH for WebM support)", de)
+
             segments, info = self.model.transcribe(
                 tmp_path,
                 language=lang_override,
                 beam_size=self.cfg.WHISPER_BEAM,
                 vad_filter=self.cfg.WHISPER_VAD,
                 vad_parameters={
-                    "min_silence_duration_ms": 800,   # Very loose - only cuts after 800ms silence
-                    "speech_pad_ms": 400,              # Extra padding around detected speech
-                    "threshold": 0.3,                  # Low threshold - captures quieter speech
+                    "min_silence_duration_ms": 800,
+                    "speech_pad_ms": 400,
+                    "threshold": 0.3,
                 },
                 condition_on_previous_text=False,
                 initial_prompt=self.cfg.WHISPER_PROMPT,
@@ -83,7 +114,7 @@ class WhisperEngine:
             text = " ".join(s.text for s in segments).strip()
             print(f"\033[90m    [STT] Raw transcription: '{text}'\033[0m")
             
-            # Whisper Hallucination Blacklist (caused by OpenAI training data on silent/noisy audio)
+            # Whisper Hallucination Blacklist
             HALLUCINATION_BLACKLIST = [
                 "thank you", "thank you thank you", "thanks", "thanks for watching",
                 "subscribe", "please subscribe", "you", "bye", "bye bye",
@@ -111,7 +142,7 @@ class WhisperEngine:
             return STTResult(text="", language="en", confidence=0.0, success=False)
 
         finally:
-            if tmp_path:
+            if tmp_path and os.path.exists(tmp_path):
                 try:
                     os.unlink(tmp_path)
                 except OSError:
