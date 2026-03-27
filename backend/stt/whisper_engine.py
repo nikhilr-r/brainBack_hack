@@ -66,18 +66,24 @@ class WhisperEngine:
 
             print(f"\033[90m    [STT] Audio received: {len(audio_bytes)} bytes | Language override: {lang_override}\033[0m")
 
+            # Only use English banking keywords if explicitly transcribing English
+            prompt_to_use = self.cfg.WHISPER_PROMPT if lang_override == "en" else self.cfg.WHISPER_PROMPT
+            # Use translate task for all non-English: converts audio directly to English text
+            task_type = "translate" if lang_override not in ["en", "auto"] else "transcribe"
+
             segments, info = self.model.transcribe(
                 tmp_path,
                 language=lang_override,
+                task=task_type,
                 beam_size=self.cfg.WHISPER_BEAM,
                 vad_filter=self.cfg.WHISPER_VAD,
                 vad_parameters={
-                    "min_silence_duration_ms": 800,   # Very loose - only cuts after 800ms silence
-                    "speech_pad_ms": 400,              # Extra padding around detected speech
-                    "threshold": 0.3,                  # Low threshold - captures quieter speech
+                    "min_silence_duration_ms": 800,   
+                    "speech_pad_ms": 400,            
+                    "threshold": 0.3,                  
                 },
                 condition_on_previous_text=False,
-                initial_prompt=self.cfg.WHISPER_PROMPT,
+                initial_prompt=prompt_to_use,
             )
 
             text = " ".join(s.text for s in segments).strip()

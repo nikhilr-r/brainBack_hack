@@ -29,9 +29,19 @@
         <div class="welcome-subtitle">Voice Banking Assistant</div>
       </div>
       <h2>Tap to Start &nbsp;•&nbsp; शुरू करने के लिए टैप करें</h2>
-      <div class="welcome-buttons">
-        <button class="btn-lang" onclick="startSession('en')">🇬🇧 English</button>
-        <button class="btn-lang" onclick="startSession('hi')">🇮🇳 हिंदी</button>
+      <div class="language-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 2rem;">
+        <button class="btn-lang" onclick="startSession('en')">English</button>
+        <button class="btn-lang" onclick="startSession('hi')">हिंदी</button>
+        <button class="btn-lang" onclick="startSession('mr')">मराठी</button>
+        <button class="btn-lang" onclick="startSession('gu')">ગુજરાતી</button>
+        <button class="btn-lang" onclick="startSession('bn')">বাংলা</button>
+        <button class="btn-lang" onclick="startSession('ta')">தமிழ்</button>
+        <button class="btn-lang" onclick="startSession('te')">తెలుగు</button>
+        <button class="btn-lang" onclick="startSession('kn')">ಕನ್ನಡ</button>
+        <button class="btn-lang" onclick="startSession('ml')">മലയാളം</button>
+        <button class="btn-lang" onclick="startSession('pa')">ਪੰਜਾਬੀ</button>
+        <button class="btn-lang" onclick="startSession('or')">ଓଡ଼ିଆ</button>
+        <button class="btn-lang" onclick="startSession('as')">অসমীয়া</button>
       </div>
     </div>
   </div>
@@ -48,7 +58,7 @@
         </div>
       </div>
       <div class="header-right">
-        <span class="pill pill-blue" id="lang-badge" role="button" tabindex="0" onclick="toggleLanguageOverride()" style="cursor: pointer; user-select: none;">🌐 Auto-Detect</span>
+        <span class="pill pill-blue" id="lang-badge" role="button" tabindex="0" onclick="resetSession()" style="cursor: pointer; user-select: none;" title="Change Language">🌐 Auto-Detect</span>
         <span class="pill pill-gold">🔒 Fully Offline</span>
         <span class="pill pill-green"><span class="live-dot" aria-hidden="true"></span> Live</span>
       </div>

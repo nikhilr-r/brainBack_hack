@@ -15,9 +15,9 @@ BANK_KNOWLEDGE = [
     "Savings account interest rate is 2.70% per year for balance below 1 lakh rupees, "
     "and 3.00% per year for balance above 1 lakh rupees.",
 
-    "To open a bank account or savings account you need: Aadhaar card, PAN card, one passport-size "
-    "photograph, and a minimum initial deposit of Rs. 500. This is the most common account "
-    "for individuals visiting the branch.",
+    "To open a personal bank account or savings account you need: Aadhaar card, PAN card, one passport-size "
+    "photograph, and a minimum initial deposit of Rs. 500. This is the standard account "
+    "for retail individuals.",
 
     "Minimum balance for savings account is Rs. 1000 in urban branches, Rs. 500 in "
     "semi-urban branches, and Rs. 250 in rural branches. "
@@ -140,7 +140,7 @@ BANK_KNOWLEDGE = [
     "Partial withdrawal allowed after 1 year.",
 
     # ── Account Opening Requirements ─────────────────────────────
-    "To open a current account you need: PAN card, business address proof, GST certificate, "
+    "To open a commercial business current account you need: PAN card, business address proof, GST certificate, "
     "partnership deed or incorporation certificate, and initial deposit of Rs. 10,000.",
 
     "To open an account for a minor child, the parent or guardian Aadhaar card is needed "
@@ -160,6 +160,9 @@ BANK_KNOWLEDGE = [
     "Interest rate is FD rate plus 1%. No separate documentation is required.",
 
     # ── ATM and Cards ────────────────────────────────────────────
+    "ATM daily cash withdrawal limit is Rs. 40,000 for Classic debit cards and "
+    "Rs. 1,00,000 for Platinum debit cards.",
+
     "To block a lost or stolen debit card immediately: call 24x7 helpline "
     "1800-XXX-XXXX (toll free), or use the mobile banking app, or visit the branch.",
 

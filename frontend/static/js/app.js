@@ -270,18 +270,32 @@ const ResponseHandler = (() => {
     } else if ('speechSynthesis' in window) {
       window.speechSynthesis.cancel();
       const utterance = new SpeechSynthesisUtterance(data.bot_text);
-      const targetLang = data.lang === "hi" ? "hi" : "en";
-      utterance.lang = targetLang === "hi" ? "hi-IN" : "en-IN";
+      const bcpMap = {
+        "en": "en-IN", "hi": "hi-IN", "mr": "mr-IN", "gu": "gu-IN", 
+        "bn": "bn-IN", "ta": "ta-IN", "te": "te-IN", "kn": "kn-IN", 
+        "ml": "ml-IN", "pa": "pa-IN", "or": "or-IN", "as": "as-IN"
+      };
+      const targetLang = data.lang;
+      utterance.lang = bcpMap[data.lang] || "en-IN";
       utterance.rate = 0.95;
       
       // Try to find the best matching voice for the language
       const voices = window.speechSynthesis.getVoices();
       const matchVoice = voices.find(v => v.lang.startsWith(targetLang));
-      if (matchVoice) utterance.voice = matchVoice;
       
-      utterance.onend = showPromptLater;
-      utterance.onerror = showPromptLater;
-      window.speechSynthesis.speak(utterance);
+      if (matchVoice) {
+        utterance.voice = matchVoice;
+        utterance.onend = showPromptLater;
+        utterance.onerror = showPromptLater;
+        window.speechSynthesis.speak(utterance);
+      } else {
+        // Fallback to Cloud TTS for regional Indian languages if no native Windows voice is installed
+        console.warn("No offline voice found for", targetLang, "— falling back to Cloud TTS");
+        const fallbackAudio = new Audio(`https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=${targetLang}&q=${encodeURIComponent(data.bot_text)}`);
+        fallbackAudio.onended = showPromptLater;
+        fallbackAudio.onerror = showPromptLater;
+        fallbackAudio.play().catch(() => showPromptLater());
+      }
     } else {
       showPromptLater();
     }
@@ -454,16 +468,22 @@ window.startSession = function(lang) {
   document.getElementById('welcome-overlay').style.display = 'none';
   document.getElementById('main-ui').style.display = 'flex';
   
-  const modes = [
-    { id: "auto", label: "🌐 Auto-Detect" },
-    { id: "hi",   label: "🇮🇳 Hindi Only" },
-    { id: "en",   label: "🇬🇧 English Only" }
-  ];
-  const selectedMode = modes.find(m => m.id === lang) || modes[0];
-  document.getElementById("lang-badge").textContent = selectedMode.label;
+  const badgeMap = {
+    "en": "🌐 English", "hi": "🌐 हिंदी", "mr": "🌐 मराठी", "gu": "🌐 ગુજરાતી",
+    "bn": "🌐 বাংলা", "ta": "🌐 தமிழ்", "te": "🌐 తెలుగు", "kn": "🌐 ಕನ್ನಡ",
+    "ml": "🌐 മലയാളം", "pa": "🌐 ਪੰਜਾਬੀ", "or": "🌐 ଓଡ଼ିଆ", "as": "🌐 অসমীয়া"
+  };
+  document.getElementById("lang-badge").textContent = badgeMap[lang] || "🌐 English";
   
-  // Optional: prompt the user to speak
-  UI.addMessage("bot", lang === 'hi' ? "नमस्ते! मैं आपकी कैसे मदद कर सकता हूँ?" : "Hello! How can I help you?", null, false);
+  const greetings = {
+    "en": "Hello! How can I help you?", "hi": "नमस्ते! मैं आपकी कैसे मदद कर सकता हूँ?",
+    "mr": "नमस्कार! मी तुम्हाला कशी मदत करू शकतो?", "gu": "નમસ્તે! હું તમને કેવી રીતે મદદ કરી શકું?",
+    "bn": "নমস্কার! আমি আপনাকে কীভাবে সাহায্য করতে পারি?", "ta": "வணக்கம்! நான் உங்களுக்கு எப்படி உதவ முடியும்?",
+    "te": "నమస్కారం! నేను మీకు ఎలా సహాయపడగలను?", "kn": "ನಮಸ್ಕಾರ! ನಾನು ನಿಮಗೆ ಹೇಗೆ ಸಹಾಯ ಮಾಡಬಲ್ಲೆ?",
+    "ml": "നമസ്കാരം! നിങ്ങളെ എങ്ങനെ സഹായിക്കാനാകും?", "pa": "ਸਤਿ ਸ੍ਰੀ ਅਕਾਲ! ਮੈਂ ਤੁਹਾਡੀ ਕਿਵੇਂ ਮਦਦ ਕਰ ਸਕਦਾ ਹਾਂ?",
+    "or": "ନମସ୍କାର! ମୁଁ ଆପଣଙ୍କୁ କିପରି ସାହାଯ্য କରିପାରିବି?", "as": "নমস্কাৰ! মই আপোনাক কেনেকৈ সহায় কৰিব পাৰোঁ?"
+  };
+  UI.addMessage("bot", greetings[lang] || greetings["en"], null, false);
 };
 
 window.endSession = async function() {
@@ -479,18 +499,6 @@ window.toggleMic = function () {
   if (STATE.processing) return;
   window.hideExitPrompt();
   STATE.recording ? Recorder.stop() : Recorder.start();
-};
-
-window.toggleLanguageOverride = function() {
-  const modes = [
-    { id: "auto", label: "🌐 Auto-Detect" },
-    { id: "hi",   label: "🇮🇳 Hindi Only" },
-    { id: "en",   label: "🇬🇧 English Only" }
-  ];
-  let currIdx = modes.findIndex(m => m.id === STATE.langOverride);
-  let nextIdx = (currIdx + 1) % modes.length;
-  STATE.langOverride = modes[nextIdx].id;
-  document.getElementById("lang-badge").textContent = modes[nextIdx].label;
 };
 
 window.askSample = function (text) {

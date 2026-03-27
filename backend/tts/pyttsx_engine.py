@@ -96,13 +96,30 @@ class TTSEngine:
     # ── Private ───────────────────────────────────────────────
 
     def _render(self, text: str, lang: str) -> Optional[bytes]:
-        if self._engine is None:
-            return None
         try:
+            # Route non-English languages to Cloud TTS
+            if lang != "en":
+                import socket
+                socket.setdefaulttimeout(4.0)  # Fast fail if Wi-Fi blocks Google
+                try:
+                    from gtts import gTTS
+                    with tempfile.NamedTemporaryFile(suffix=".mp3", delete=False) as f:
+                        tmp = f.name
+                    
+                    tts = gTTS(text=text, lang=lang, slow=False)
+                    tts.save(tmp)
+                    
+                    wav = Path(tmp).read_bytes()
+                    Path(tmp).unlink(missing_ok=True)
+                    return wav
+                finally:
+                    socket.setdefaulttimeout(None)
+
+            if self._engine is None:
+                return None
+            
             # Select voice
-            if lang == "hi" and self._hi_voice:
-                self._engine.setProperty("voice", self._hi_voice)
-            elif self._en_voice:
+            if self._en_voice:
                 self._engine.setProperty("voice", self._en_voice)
 
             with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as f:

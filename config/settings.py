@@ -19,7 +19,7 @@ class Settings:
     WHISPER_DEVICE   = "cpu"       # cpu | cuda
     WHISPER_COMPUTE  = "int8"      # int8 | float16 | float32
     WHISPER_LANGUAGE = "en"       # Force English by default to stop random language hallucinations
-    WHISPER_BEAM     = 5           # Higher beam = better accuracy (was 3)
+    WHISPER_BEAM     = 1           # Greedy decoding (fastest, prevents infinite loop)
     WHISPER_VAD      = True        # Re-enabled: filters noise/silence hallucinations
     WHISPER_PROMPT   = (
         "Bank account, savings account, current account, fixed deposit, FD, "
@@ -38,9 +38,9 @@ class Settings:
     OLLAMA_FALLBACK = [                    # tried in order if primary missing
         "phi3:mini", "gemma2:2b", "mistral", "llama3.2", "llama2"
     ]
-    LLM_TEMPERATURE = 0.05
+    LLM_TEMPERATURE = 0.00
     LLM_TOP_P       = 0.9
-    LLM_MAX_TOKENS  = 75
+    LLM_MAX_TOKENS  = 110
     LLM_TIMEOUT_S   = 120
     LLM_STOP        = ["\n\n", "User:", "Human:", "Assistant:"]
 
@@ -55,7 +55,7 @@ class Settings:
     RAG_COLLECTION = "bank_faq"
 
     # ── Confidence gate ───────────────────────────────────────
-    CONF_THRESHOLD    = 0.30       # below → human teller fallback
+    CONF_THRESHOLD    = 0.20       # below → human teller fallback
     CONF_WEIGHT_STT   = 0.30       # weight of STT confidence (lowered - unreliable on accents)
     CONF_WEIGHT_RAG   = 0.70       # weight of RAG similarity (primary signal)
 

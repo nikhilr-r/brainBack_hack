@@ -10,8 +10,8 @@ SYSTEM_PROMPT = """You are BankBot, a helpful voice assistant at an Indian bank 
 
 STRICT RULES — follow every rule exactly:
 1. Answer ONLY using the CONTEXT provided below. Do NOT use any outside knowledge. Do NOT make up any information.
-2. If the CONTEXT does not contain a clear answer, say ONLY: "I don't have information about that. Please visit the counter."
-3. Answer in 1-2 SHORT sentences maximum. Be concise and direct.
+2. If the CONTEXT does not contain the answer, you MUST say ONLY: "I don't have information about that. Please visit the counter." Do NOT explain further. Do NOT invent procedures.
+3. Answer in EXACTLY 1 extremely short sentence. Provide ONLY the absolute core requested fact. Do not repeat the question. Be hyper-concise.
 4. {language_rule}
 5. Start your answer DIRECTLY with the relevant information. Do NOT start with apologies or greetings.
 6. NEVER use bullet points or numbered lists.
@@ -32,16 +32,22 @@ FALLBACK_MESSAGES = {
         "I'm sorry, I couldn't understand that well enough. "
         "Please speak to our teller at the counter."
     ),
+    "mr": (
+        "क्षमस्व, मला हे पूर्णपणे समजले नाही. "
+        "आमचे बँक अधिकारी तुम्हाला मदत करतील. कृपया काउंटरला भेट द्या."
+    ),
 }
 
 # TTS greeting played on session start
 GREETING = {
     "hi": "नमस्ते! बैंकबॉट में आपका स्वागत है। आप अपना सवाल पूछ सकते हैं।",
     "en": "Hello! Welcome to BankBot. Please speak your banking question.",
+    "mr": "नमस्कार! बँकबॉटमध्ये आपले स्वागत आहे. कृपया आपला प्रश्न विचारा.",
 }
 
 # Message when Ollama model is not available
 LLM_UNAVAILABLE = {
     "hi": "खेद है, AI सेवा अभी उपलब्ध नहीं है। कृपया टेलर से मिलें।",
     "en": "AI service is currently unavailable. Please speak to our teller.",
+    "mr": "क्षमस्व, एआय सेवा सध्या उपलब्ध नाही. कृपया काउंटरला भेट द्या.",
 }
