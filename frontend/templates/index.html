@@ -1,201 +1,268 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>BankBot — BrainBack.AI</title>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>BankBot — BrainBack.AI</title>
 
-  <!-- Fonts (only external dependency) -->
-  <link rel="preconnect" href="https://fonts.googleapis.com"/>
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700;800&family=Noto+Sans+Devanagari:wght@400;600&display=swap" rel="stylesheet"/>
+    <!-- Fonts (only external dependency) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700;800&family=Noto+Sans+Devanagari:wght@400;600&display=swap"
+      rel="stylesheet"
+    />
 
-  <!-- Kiosk stylesheet -->
-  <link rel="stylesheet" href="/static/css/style.css"/>
-</head>
+    <!-- Kiosk stylesheet -->
+    <link rel="stylesheet" href="/static/css/style.css" />
+  </head>
 
-<body>
+  <body>
+    <!-- Animated background layers -->
+    <div class="bg-radial" aria-hidden="true"></div>
+    <div class="bg-grid" aria-hidden="true"></div>
 
-  <!-- Animated background layers -->
-  <div class="bg-radial" aria-hidden="true"></div>
-  <div class="bg-grid"   aria-hidden="true"></div>
-
-  <!-- ── WELCOME OVERLAY ───────────────────────────────────── -->
-  <div id="welcome-overlay" class="welcome-overlay">
-    <div class="welcome-card">
-      <div class="welcome-brand">
-        <div class="welcome-logo">🏦</div>
-        <div class="welcome-title">Brain<em>Back</em>.AI</div>
-        <div class="welcome-subtitle">Voice Banking Assistant</div>
-      </div>
-      <h2>Tap to Start &nbsp;•&nbsp; शुरू करने के लिए टैप करें</h2>
-      <div class="welcome-buttons">
-        <button class="btn-lang" onclick="startSession('en')">🇬🇧 English</button>
-        <button class="btn-lang" onclick="startSession('hi')">🇮🇳 हिंदी</button>
-      </div>
-    </div>
-  </div>
-
-  <main class="page" id="main-ui" style="display: none;">
-
-    <!-- ── HEADER ──────────────────────────────────────────── -->
-    <header class="header">
-      <div class="brand">
-        <div class="brand-logo" aria-hidden="true">🏦</div>
-        <div class="brand-text">
-          <div class="brand-name">Brain<em>Back</em>.AI</div>
-          <div class="brand-sub">Voice Banking Assistant</div>
-        </div>
-      </div>
-      <div class="header-right">
-        <span class="pill pill-blue" id="lang-badge" role="button" tabindex="0" onclick="toggleLanguageOverride()" style="cursor: pointer; user-select: none;">🌐 Auto-Detect</span>
-        <span class="pill pill-gold">🔒 Fully Offline</span>
-        <span class="pill pill-green"><span class="live-dot" aria-hidden="true"></span> Live</span>
-      </div>
-    </header>
-
-    <!-- ── OFFLINE INDICATOR ───────────────────────────────── -->
-    <div class="offline-banner" role="status">
-      <span class="dot" aria-hidden="true"></span>
-      Zero internet required &nbsp;·&nbsp; 100% on-device &nbsp;·&nbsp; No data leaves this machine
-    </div>
-
-    <!-- ── MODEL STATUS BAR (filled by JS) ────────────────── -->
-    <div class="model-bar" id="model-bar" role="status" aria-label="Model status">
-      <span class="mt-lbl">Checking models…</span>
-    </div>
-
-    <!-- ── GREETING ────────────────────────────────────────── -->
-    <section class="greeting">
-      <h1>नमस्ते! <span class="hi">बैंकबॉट</span> में आपका स्वागत है 🙏</h1>
-      <p>Speak your banking question in Hindi or English &nbsp;•&nbsp; बोलकर अपना सवाल पूछें</p>
-    </section>
-
-    <!-- ── MAIN INTERACTION CARD ───────────────────────────── -->
-    <div class="card">
-
-      <!-- Conversation history -->
-      <section class="conversation" id="conversation" aria-label="Conversation" aria-live="polite">
-        <div class="empty-state" id="empty-state">
-          <div class="icon" aria-hidden="true">🎙️</div>
-          <p>Press the mic and speak your banking question</p>
-          <p style="font-size:12.5px; color:#4466AA; margin-top:3px">
-            माइक दबाएं और सवाल बोलें
-          </p>
-          <div class="sample-tiles" role="list">
-            <button class="sample-tile" role="listitem" onclick="askSample('FD interest rate kya hai')">📈 FD rates</button>
-            <button class="sample-tile" role="listitem" onclick="askSample('savings account kholne ke liye kya chahiye')">🏦 Account खोलें</button>
-            <button class="sample-tile" role="listitem" onclick="askSample('ATM card block karna hai')">🔒 Card block</button>
-            <button class="sample-tile" role="listitem" onclick="askSample('branch timing kya hai')">🕐 Branch hours</button>
-            <button class="sample-tile" role="listitem" onclick="askSample('home loan ki jankari')">🏠 Home loan</button>
-            <button class="sample-tile" role="listitem" onclick="askSample('Jan Dhan account kya hota hai')">📋 Jan Dhan</button>
-            <button class="sample-tile" role="listitem" onclick="askSample('gold loan chahiye')">🥇 Gold loan</button>
-            <button class="sample-tile" role="listitem" onclick="askSample('mudra loan kaise milega')">💼 Mudra loan</button>
+    <main class="page">
+      <!-- ── HEADER ──────────────────────────────────────────── -->
+      <header class="header">
+        <div class="brand">
+          <div class="brand-logo" aria-hidden="true">🏦</div>
+          <div class="brand-text">
+            <div class="brand-name">Brain<em>Back</em>.AI</div>
+            <div class="brand-sub">Sovereign Voice AI</div>
           </div>
         </div>
-      </section>
 
-      <!-- Thinking indicator (shown while pipeline is running) -->
-      <div class="thinking-wrap" id="thinking-wrap" aria-live="polite">
-        <div class="msg bot">
-          <div class="avatar" aria-hidden="true">🤖</div>
-          <div class="thinking-dots" role="status" aria-label="Processing">
-            <div class="thinking-dot"></div>
-            <div class="thinking-dot"></div>
-            <div class="thinking-dot"></div>
+        <!-- NEW NAVBAR -->
+        <nav class="top-nav">
+          <button class="nav-btn active" id="nav-landing" onclick="switchView('landing-view')">Overview</button>
+          <button class="nav-btn" id="nav-kiosk" onclick="switchView('kiosk-view')">Kiosk</button>
+          <button class="nav-btn" id="nav-dashboard" onclick="switchView('dashboard-view')">Dashboard</button>
+        </nav>
+
+        <div class="header-right">
+          <span
+            class="pill pill-blue"
+            id="lang-badge"
+            role="button"
+            tabindex="0"
+            onclick="toggleLanguageOverride()"
+            style="cursor: pointer; user-select: none"
+            >🌐 Auto-Detect</span
+          >
+          <span class="pill pill-gold">🔒 Fully Offline</span>
+          <span class="pill pill-green"
+            ><span class="live-dot" aria-hidden="true"></span> Live</span
+          >
+        </div>
+      </header>
+
+      <!-- ── VIEW CONTROLLER START ───────────────────────────── -->
+
+      <!-- [ VIEW 1: LANDING PAGE ] -->
+      <div id="landing-view" class="view active">
+        <section class="landing-hero">
+          <div class="hero-content">
+            <h1 class="hero-title">The Future of <span class="hi">Sovereign Banking</span></h1>
+            <p class="hero-subtitle">100% On-Device. Zero Latency. Absolute Privacy.</p>
+            
+            <div class="hero-features">
+              <div class="feature-card">
+                <div class="f-icon">🔒</div>
+                <h3>Air-Gapped Security</h3>
+                <p>No internet required. Whisper STT & Phi-3 LLM run entirely locally.</p>
+              </div>
+              <div class="feature-card">
+                <div class="f-icon">🌐</div>
+                <h3>Multilingual RAG</h3>
+                <p>Native Hindi & English processing using an offline semantic vector index.</p>
+              </div>
+              <div class="feature-card">
+                <div class="f-icon">⚡</div>
+                <h3>Sub-10s Latency</h3>
+                <p>Optimized ONNX inference pipelines for immediate voice responses.</p>
+              </div>
+            </div>
+
+            <button class="btn-primary hero-cta" onclick="switchView('kiosk-view')">Enter Kiosk Experience ➔</button>
+          </div>
+        </section>
+      </div>
+      <!-- [ /VIEW 1 ] -->
+
+
+      <!-- [ VIEW 2: KIOSK PAGE ] -->
+      <div id="kiosk-view" class="view">
+        <!-- OFFLINE INDICATOR -->
+        <div class="offline-banner" role="status">
+          <span class="dot" aria-hidden="true"></span>
+          Zero internet required &nbsp;·&nbsp; 100% on-device &nbsp;·&nbsp; No data leaves this machine
+        </div>
+
+        <!-- NEW: Grid Layout for Chat vs RAG Panel -->
+        <div class="kiosk-grid">
+          
+          <!-- LEFT COL: The Chat Interface -->
+          <div class="kiosk-main">
+            <!-- GREETING -->
+            <section class="greeting">
+              <h1>नमस्ते! <span class="hi">बैंकबॉट</span> में आपका स्वागत है 🙏</h1>
+              <p>Speak your banking question in Hindi or English &nbsp;•&nbsp; बोलकर अपना सवाल पूछें</p>
+            </section>
+
+            <!-- MAIN INTERACTION CARD -->
+            <div class="card">
+              <!-- Conversation history -->
+              <section class="conversation" id="conversation" aria-label="Conversation" aria-live="polite">
+                <div class="empty-state" id="empty-state">
+                  <div class="icon" aria-hidden="true">🎙️</div>
+                  <p>Press the mic and speak your banking question</p>
+                  <p style="font-size: 12.5px; color: #4466aa; margin-top: 3px">माइक दबाएं और सवाल बोलें</p>
+                  <div class="sample-tiles" role="list">
+                    <button class="sample-tile" role="listitem" onclick="askSample('FD interest rate kya hai')">📈 FD rates</button>
+                    <button class="sample-tile" role="listitem" onclick="askSample('savings account kholne ke liye kya chahiye')">🏦 Account खोलें</button>
+                    <button class="sample-tile" role="listitem" onclick="askSample('ATM card block karna hai')">🔒 Card block</button>
+                    <button class="sample-tile" role="listitem" onclick="askSample('branch timing kya hai')">🕐 Branch hours</button>
+                    <button class="sample-tile" role="listitem" onclick="askSample('home loan ki jankari')">🏠 Home loan</button>
+                  </div>
+                </div>
+              </section>
+
+              <!-- Thinking indicator -->
+              <div class="thinking-wrap" id="thinking-wrap" aria-live="polite">
+                <div class="msg bot">
+                  <div class="avatar" aria-hidden="true">🤖</div>
+                  <div class="thinking-dots" role="status" aria-label="Processing">
+                    <div class="thinking-dot"></div>
+                    <div class="thinking-dot"></div>
+                    <div class="thinking-dot"></div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="divider" aria-hidden="true"></div>
+
+              <!-- Voice controls -->
+              <div class="voice-controls">
+                <!-- Real-time waveform from mic -->
+                <div class="waveform" id="waveform" aria-hidden="true"></div>
+
+                <!-- Mic button with animated rings -->
+                <div class="mic-wrap">
+                  <div class="mic-ring off" id="mic-ring-1" aria-hidden="true"></div>
+                  <div class="mic-ring off" id="mic-ring-2" aria-hidden="true"></div>
+                  <div class="mic-ring off" id="mic-ring-3" aria-hidden="true"></div>
+                  <button class="mic-btn" id="mic-btn" onclick="toggleMic()" aria-label="Start recording">🎙️</button>
+                </div>
+
+                <div class="mic-label" id="mic-label" role="status">Tap to speak &nbsp;•&nbsp; बोलने के लिए टैप करें</div>
+              </div>
+
+              <!-- Text Input Area -->
+              <div class="text-chat-area">
+                <input type="text" id="chat-input" class="chat-input" placeholder="Type your banking question here..." autocomplete="off"/>
+                <button class="btn-send" id="send-btn" aria-label="Send message">✍️</button>
+              </div>
+            </div>
+
+            <!-- MODEL STATUS BAR -->
+            <div class="model-bar mt-sm" id="model-bar" role="status" aria-label="Model status">
+              <span class="mt-lbl">Checking models…</span>
+            </div>
+            
+            <!-- TELLER ALERT -->
+            <div class="teller-alert mt-sm" id="teller-alert" role="alert">
+              <div class="teller-icon" aria-hidden="true">🔔</div>
+              <div class="teller-body">
+                <h3>टेलर को सूचित किया गया — Teller Notified</h3>
+                <p id="teller-msg">Please proceed to the counter. Our staff will assist you.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- RIGHT COL: RAG Visualizer -->
+          <div class="kiosk-sidebar">
+            <div class="rag-panel">
+              <div class="rag-header">
+                <h3>🧠 RAG Pipeline</h3>
+                <span class="rag-pulse"></span>
+              </div>
+              <div class="rag-body" id="rag-visualizer">
+                <div class="rag-empty">Waiting for first query...</div>
+              </div>
+            </div>
+
+            <!-- Pipeline stats embedded here -->
+            <div class="stats-bar vertical" role="group" aria-label="Session statistics">
+              <div class="stat-card"><div class="stat-value" id="stat-turns">0</div><div class="stat-label">Turns</div></div>
+              <div class="stat-card"><div class="stat-value" id="stat-conf">—</div><div class="stat-label">Confidence</div></div>
+              <div class="stat-card"><div class="stat-value" id="stat-lang">—</div><div class="stat-label">Language</div></div>
+              <div class="stat-card"><div class="stat-value" id="stat-latency">—</div><div class="stat-label">Latency</div></div>
+            </div>
+          </div>
+
+        </div> <!-- /kiosk-grid -->
+      </div>
+      <!-- [ /VIEW 2 ] -->
+
+
+      <!-- [ VIEW 3: DASHBOARD PAGE ] -->
+      <div id="dashboard-view" class="view">
+        <div class="dashboard-grid">
+          
+          <div class="dash-card">
+            <h3>📈 Kiosk Analytics (Mock)</h3>
+            <div class="dash-stats">
+              <div class="dash-stat">
+                <span class="d-val">42</span>
+                <span class="d-lbl">Active Users Today</span>
+              </div>
+              <div class="dash-stat">
+                <span class="d-val">98%</span>
+                <span class="d-lbl">Intent Success Rate</span>
+              </div>
+              <div class="dash-stat">
+                <span class="d-val">8.2s</span>
+                <span class="d-lbl">Average Latency</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="dash-card">
+            <h3>🖥️ Hardware Proxy</h3>
+            <div class="hw-bars">
+              <div class="hw-row"><span>CPU Usage</span><div class="hw-bar"><div class="hw-fill cpu" style="width:75%"></div></div></div>
+              <div class="hw-row"><span>RAM (Phi-3)</span><div class="hw-bar"><div class="hw-fill ram" style="width:60%"></div></div></div>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="dash-card flex-1">
+          <h3>📜 Live Transcript Feed</h3>
+          <div class="dash-transcript" id="dash-transcript">
+            <!-- Feed injected by JS -->
           </div>
         </div>
       </div>
+      <!-- [ /VIEW 3 ] -->
 
-      <div class="divider" aria-hidden="true"></div>
-
-      <!-- Exit Prompt Banner -->
-      <div id="exit-prompt" class="exit-prompt">
-        <div class="exit-msg">Any more questions? &nbsp;•&nbsp; कोई और सवाल?</div>
-        <div class="exit-actions">
-          <button class="btn-exit" onclick="endSession()">🛑 No, Exit</button>
-          <button class="btn-continue" onclick="hideExitPrompt()">🎤 Yes, Ask</button>
-        </div>
+      <!-- ── BOTTOM ROW ──────────────────────────────────────── -->
+      <div class="bottom-row">
+        <button class="btn-secondary" onclick="resetSession()">🔄 New Customer</button>
+        <p class="credit">Powered by <b>BrainBack.AI</b> &nbsp;·&nbsp; Team AlgoNexus</p>
+        <button class="btn-secondary" onclick="toggleDebug()">🔍 Debug</button>
       </div>
 
-      <!-- Voice controls -->
-      <div class="voice-controls">
+      <!-- ── DEBUG PANEL ─────────────────────────────────────── -->
+      <pre class="debug-panel" id="debug-panel" aria-label="Debug output">Waiting for first query…</pre>
+    </main>
+    <!-- /page -->
 
-        <!-- Real-time waveform from mic -->
-        <div class="waveform" id="waveform" aria-hidden="true"></div>
+    <!-- Hidden audio player for TTS output -->
+    <audio id="audio-player" aria-hidden="true"></audio>
 
-        <!-- Mic button with animated rings -->
-        <div class="mic-wrap">
-          <div class="mic-ring off" id="mic-ring-1" aria-hidden="true"></div>
-          <div class="mic-ring off" id="mic-ring-2" aria-hidden="true"></div>
-          <div class="mic-ring off" id="mic-ring-3" aria-hidden="true"></div>
-          <button
-            class="mic-btn"
-            id="mic-btn"
-            onclick="toggleMic()"
-            aria-label="Start recording"
-          >🎙️</button>
-        </div>
-
-        <div class="mic-label" id="mic-label" role="status">
-          Tap to speak &nbsp;•&nbsp; बोलने के लिए टैप करें
-        </div>
-
-      </div><!-- /voice-controls -->
-
-      <!-- Text Input Area -->
-      <div class="text-chat-area">
-         <input type="text" id="chat-input" class="chat-input" placeholder="Type your banking question here..." autocomplete="off">
-         <button class="btn-send" id="send-btn" aria-label="Send message">✍️</button>
-      </div>
-      <!-- Pipeline stats -->
-      <div class="stats-bar" role="group" aria-label="Session statistics">
-        <div class="stat-card">
-          <div class="stat-value" id="stat-turns">0</div>
-          <div class="stat-label">Turns</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-value" id="stat-conf">—</div>
-          <div class="stat-label">Confidence</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-value" id="stat-lang">—</div>
-          <div class="stat-label">Language</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-value" id="stat-latency">—</div>
-          <div class="stat-label">Latency</div>
-        </div>
-      </div>
-
-    </div><!-- /card -->
-
-    <!-- ── TELLER ALERT ─────────────────────────────────────── -->
-    <div class="teller-alert" id="teller-alert" role="alert">
-      <div class="teller-icon" aria-hidden="true">🔔</div>
-      <div class="teller-body">
-        <h3>टेलर को सूचित किया गया — Teller Notified</h3>
-        <p id="teller-msg">Please proceed to the counter. Our staff will assist you.</p>
-      </div>
-    </div>
-
-    <!-- ── BOTTOM ROW ──────────────────────────────────────── -->
-    <div class="bottom-row">
-      <button class="btn-secondary" onclick="resetSession()">🔄 New Customer</button>
-      <p class="credit">Powered by <b>BrainBack.AI</b> &nbsp;·&nbsp; Team AlgoNexus &nbsp;·&nbsp; PS-02</p>
-      <button class="btn-secondary" onclick="toggleDebug()">🔍 Debug</button>
-    </div>
-
-    <!-- ── DEBUG PANEL ─────────────────────────────────────── -->
-    <pre class="debug-panel" id="debug-panel" aria-label="Debug output">Waiting for first query…</pre>
-
-  </main><!-- /page -->
-
-  <!-- Hidden audio player for TTS output -->
-  <audio id="audio-player" aria-hidden="true"></audio>
-
-  <!-- Kiosk JS (deferred — runs after DOM ready) -->
-  <script src="/static/js/app.js" defer></script>
-
-</body>
+    <!-- App Scripts -->
+    <script src="/static/js/app.js" defer></script>
+  </body>
 </html>

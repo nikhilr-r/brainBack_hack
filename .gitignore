@@ -1,58 +1,35 @@
-# Virtual Environment
-.venv/
-venv/
-env/
-ENV/
+# --- BrainBack.AI / BankBot .gitignore ---
 
-# Python Cache
+# Data & Models (Crucial: Keep large binary models out of Git)
+data/
+*.onnx
+*.bin
+*.tar.bz2
+*.tar.gz
+
+# Python & Environment
+venv/
+.venv/
+env/
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
-.Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-share/python-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
+.pytest_cache/
+.mypy_cache/
 
-# Database / Storage
-chroma_db/
-*.db
-*.sqlite3
-
-# Logs and Audio Dumps
+# Audio Cache & Logs (Temporary session data)
+tts_cache/
 logs/
-*.log
-log.txt
 *.wav
 *.webm
 *.mp3
-*.ogg
 
-# IDEs and Editors
+# IDEs & System Files
 .vscode/
 .idea/
-*.swp
-*.swo
-*~
 .DS_Store
+Thumbs.db
 
-# Environment Variables
+# Environmental variables
 .env
-.env.local
-
-# Flask / Web
-instance/
-.webassets-cache
