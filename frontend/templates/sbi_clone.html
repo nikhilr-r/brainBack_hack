@@ -1,0 +1,528 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>State Bank of India - Personal Banking</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --sbi-blue:   #00B5EF;
+      --sbi-navy:   #292075;
+      --sbi-red:    #E31E24;
+      --sbi-gray:   #F5F5F5;
+      --sbi-border: #D9D9D9;
+      --text-dark:  #1A1A1A;
+      --text-mid:   #555;
+      --white:      #FFFFFF;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Open Sans', Arial, sans-serif; color: var(--text-dark); background: var(--white); }
+    a { text-decoration: none; color: inherit; }
+    ul { list-style: none; }
+
+    /* ── Utility Notice Bar ──────────────────────────────────── */
+    .utility-bar {
+      background: var(--sbi-navy);
+      padding: 5px 5%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+      color: #cce9ff;
+    }
+    .utility-bar a { color: #9fd8f7; margin: 0 8px; }
+    .utility-bar a:hover { color: #fff; }
+    .utility-links { display: flex; gap: 0; }
+
+    /* ── Top Header ─────────────────────────────────────────── */
+    .top-header {
+      background: var(--white);
+      padding: 12px 5%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 3px solid var(--sbi-blue);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.07);
+    }
+    .sbi-logo {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .logo-mark {
+      width: 60px;
+      height: 60px;
+      background: var(--sbi-navy);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 4px solid var(--sbi-blue);
+      flex-shrink: 0;
+    }
+    .logo-mark svg { width: 32px; height: 32px; }
+    .logo-text { line-height: 1.25; }
+    .logo-text .name { font-size: 20px; font-weight: 700; color: var(--sbi-navy); letter-spacing: 0.5px; }
+    .logo-text .tagline { font-size: 10px; color: var(--sbi-blue); font-weight: 600; letter-spacing: 1.4px; text-transform: uppercase; }
+    .header-right { display: flex; align-items: center; gap: 14px; }
+    .search-bar { display: flex; align-items: center; border: 1px solid var(--sbi-border); border-radius: 4px; overflow: hidden; }
+    .search-bar input { border: none; padding: 8px 12px; font-size: 13px; outline: none; width: 200px; font-family: inherit; }
+    .search-bar button { background: var(--sbi-blue); border: none; padding: 8px 12px; cursor: pointer; color: #fff; font-size: 14px; }
+    .btn-login {
+      background: var(--sbi-navy); color: #fff;
+      padding: 9px 20px; border-radius: 4px;
+      font-size: 13px; font-weight: 600; cursor: pointer;
+      transition: background 0.2s;
+      border: none; font-family: inherit;
+    }
+    .btn-login:hover { background: var(--sbi-blue); }
+
+    /* ── Main Navigation ─────────────────────────────────────── */
+    .main-nav {
+      background: var(--sbi-navy);
+      padding: 0 5%;
+    }
+    .main-nav ul {
+      display: flex;
+      gap: 0;
+    }
+    .main-nav ul li {
+      position: relative;
+    }
+    .main-nav ul li a {
+      display: block;
+      padding: 14px 18px;
+      color: #fff;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.3px;
+      transition: background 0.15s;
+      white-space: nowrap;
+    }
+    .main-nav ul li a:hover,
+    .main-nav ul li a.active {
+      background: var(--sbi-blue);
+      color: #fff;
+    }
+    /* Dropdown */
+    .main-nav ul li .dropdown {
+      display: none;
+      position: absolute;
+      top: 100%;
+      left: 0;
+      background: #fff;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+      min-width: 200px;
+      z-index: 200;
+      border-top: 3px solid var(--sbi-blue);
+    }
+    .main-nav ul li:hover .dropdown { display: block; }
+    .dropdown a { color: var(--text-dark) !important; padding: 10px 18px; font-size: 12.5px; font-weight: 400; border-bottom: 1px solid #f0f0f0; }
+    .dropdown a:hover { background: #f0f8ff; color: var(--sbi-navy) !important; }
+
+    /* ── Hero Carousel ───────────────────────────────────────── */
+    .hero {
+      position: relative;
+      background: linear-gradient(120deg, var(--sbi-navy) 0%, #1a3575 50%, #00699b 100%);
+      min-height: 380px;
+      display: flex;
+      align-items: center;
+      overflow: hidden;
+    }
+    .hero-bg-circles {
+      position: absolute; inset: 0; pointer-events: none;
+    }
+    .hero-bg-circles span {
+      position: absolute; border-radius: 50%;
+      background: rgba(0,181,239,0.07);
+    }
+    .hero-bg-circles span:nth-child(1) { width: 500px; height: 500px; top: -150px; right: -100px; }
+    .hero-bg-circles span:nth-child(2) { width: 300px; height: 300px; bottom: -100px; left: 30%; }
+    .hero-content { position: relative; padding: 40px 5%; color: #fff; max-width: 600px; z-index: 1; }
+    .hero-badge { background: var(--sbi-blue); color: #fff; font-size: 10px; font-weight: 700; padding: 4px 12px; border-radius: 20px; letter-spacing: 1px; text-transform: uppercase; display: inline-block; margin-bottom: 16px; }
+    .hero h1 { font-size: 40px; font-weight: 700; line-height: 1.2; margin-bottom: 16px; }
+    .hero h1 span { color: var(--sbi-blue); }
+    .hero p { font-size: 16px; opacity: 0.88; margin-bottom: 28px; line-height: 1.7; }
+    .hero-btns { display: flex; gap: 12px; flex-wrap: wrap; }
+    .btn-hero-primary { background: var(--sbi-blue); color: #fff; padding: 12px 24px; border-radius: 4px; font-size: 14px; font-weight: 700; transition: all 0.2s; cursor: pointer; border: none; font-family: inherit; }
+    .btn-hero-primary:hover { background: #fff; color: var(--sbi-navy); }
+    .btn-hero-outline { background: transparent; color: #fff; padding: 12px 24px; border-radius: 4px; font-size: 14px; font-weight: 700; border: 2px solid rgba(255,255,255,0.6); transition: all 0.2s; cursor: pointer; font-family: inherit; }
+    .btn-hero-outline:hover { background: rgba(255,255,255,0.1); border-color: #fff; }
+    .hero-visual { position: absolute; right: 5%; top: 50%; transform: translateY(-50%); font-size: 140px; opacity: 0.08; }
+
+    /* ── Quick Services ──────────────────────────────────────── */
+    .quick-services {
+      background: var(--white);
+      padding: 0 5%;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      position: relative;
+      z-index: 10;
+    }
+    .quick-services ul { display: flex; gap: 0; }
+    .quick-services ul li a {
+      display: flex; align-items: center; gap: 8px;
+      padding: 14px 20px;
+      font-size: 12.5px; color: var(--text-mid); font-weight: 600;
+      border-bottom: 3px solid transparent;
+      transition: all 0.18s;
+    }
+    .quick-services ul li a:hover,
+    .quick-services ul li a.active {
+      color: var(--sbi-navy);
+      border-bottom-color: var(--sbi-blue);
+    }
+    .qs-icon { font-size: 18px; }
+
+    /* ── Products Grid ───────────────────────────────────────── */
+    .products-section { padding: 50px 5%; background: var(--sbi-gray); }
+    .section-title {
+      font-size: 26px; font-weight: 700; color: var(--sbi-navy);
+      margin-bottom: 8px;
+    }
+    .section-title span { color: var(--sbi-blue); }
+    .section-sub { font-size: 14px; color: var(--text-mid); margin-bottom: 32px; }
+    .products-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+    .product-card {
+      background: var(--white);
+      border-radius: 8px;
+      border: 1px solid var(--sbi-border);
+      padding: 28px 22px;
+      transition: box-shadow 0.2s, transform 0.2s;
+      cursor: pointer;
+    }
+    .product-card:hover { box-shadow: 0 8px 24px rgba(41,32,117,0.12); transform: translateY(-4px); }
+    .pc-icon { font-size: 36px; margin-bottom: 14px; }
+    .pc-title { font-size: 15px; font-weight: 700; color: var(--sbi-navy); margin-bottom: 8px; }
+    .pc-desc { font-size: 12.5px; color: var(--text-mid); line-height: 1.6; }
+    .pc-link { display: inline-block; margin-top: 14px; font-size: 12px; color: var(--sbi-blue); font-weight: 700; }
+    .pc-link:hover { color: var(--sbi-navy); }
+
+    /* ── Rates Bar ───────────────────────────────────────────── */
+    .rates-bar {
+      background: var(--sbi-navy); color: #fff;
+      padding: 16px 5%;
+      display: flex; gap: 40px; align-items: center;
+    }
+    .rates-bar .label { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--sbi-blue); font-weight: 700; }
+    .rate-item { text-align: center; }
+    .rate-val { font-size: 22px; font-weight: 700; }
+    .rate-name { font-size: 11px; color: #9fd8f7; margin-top: 2px; }
+
+    /* ── News Section ─────────────────────────────────────────── */
+    .news-section { padding: 50px 5%; }
+    .news-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+    .news-card { border: 1px solid var(--sbi-border); border-radius: 8px; overflow: hidden; cursor: pointer; transition: box-shadow 0.2s; }
+    .news-card:hover { box-shadow: 0 6px 20px rgba(0,0,0,0.1); }
+    .news-img { background: linear-gradient(135deg, var(--sbi-navy), var(--sbi-blue)); height: 140px; display: flex; align-items: center; justify-content: center; font-size: 48px; }
+    .news-body { padding: 18px; }
+    .news-tag { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--sbi-blue); margin-bottom: 8px; }
+    .news-title { font-size: 14px; font-weight: 700; color: var(--sbi-navy); line-height: 1.4; margin-bottom: 8px; }
+    .news-date { font-size: 11px; color: var(--text-mid); }
+
+    /* ── Footer ──────────────────────────────────────────────── */
+    footer { background: var(--sbi-navy); color: #cce9ff; padding: 40px 5% 20px; }
+    .footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 32px; margin-bottom: 30px; }
+    .footer-brand { color: #fff; }
+    .footer-brand-logo { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+    .footer-brand-logo .logo-mini { width: 40px; height: 40px; background: var(--sbi-blue); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+    .footer-brand-logo span { font-size: 16px; font-weight: 700; }
+    .footer-brand p { font-size: 12px; line-height: 1.7; opacity: 0.75; }
+    .footer-col h4 { color: var(--sbi-blue); font-size: 12px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 14px; font-weight: 700; }
+    .footer-col ul li { margin-bottom: 8px; }
+    .footer-col ul li a { font-size: 12px; color: #9fd8f7; transition: color 0.15s; }
+    .footer-col ul li a:hover { color: #fff; }
+    .footer-bottom { border-top: 1px solid rgba(255,255,255,0.12); padding-top: 18px; display: flex; justify-content: space-between; font-size: 11px; color: rgba(255,255,255,0.5); flex-wrap: wrap; gap: 10px; }
+
+    /* ── Marquee ─────────────────────────────────────────────── */
+    .ticker-bar { background: #fff3cd; border-top: 1px solid #ffc107; border-bottom: 1px solid #ffc107; padding: 8px 0; overflow: hidden; }
+    .ticker-inner { display: flex; gap: 60px; animation: ticker 30s linear infinite; white-space: nowrap; font-size: 12px; color: #555; font-weight: 600; }
+    @keyframes ticker { from { transform: translateX(100vw); } to { transform: translateX(-100%); } }
+
+    @media (max-width: 900px) {
+      .products-grid { grid-template-columns: repeat(2, 1fr); }
+      .news-grid { grid-template-columns: 1fr; }
+      .footer-grid { grid-template-columns: 1fr 1fr; }
+      .hero h1 { font-size: 28px; }
+      .hero-visual { display: none; }
+      .main-nav ul li a { padding: 12px 12px; font-size: 12px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ── Utility Bar ──────────────────────────────────────── -->
+  <div class="utility-bar">
+    <span>Customer Care: 1800-1234 | 1800-11-22-11 (Toll Free)</span>
+    <div class="utility-links">
+      <a href="#">Locate Us</a>|
+      <a href="#">ATM Services</a>|
+      <a href="#">Online SBI</a>|
+      <a href="#">YONO</a>|
+      <a href="#">Hindi</a>
+    </div>
+  </div>
+
+  <!-- ── Top Header ───────────────────────────────────────── -->
+  <header class="top-header">
+    <div class="sbi-logo">
+      <div class="logo-mark">
+        <svg viewBox="0 0 60 60" fill="none">
+          <circle cx="30" cy="30" r="28" fill="#00B5EF" opacity="0.15"/>
+          <text x="30" y="38" text-anchor="middle" font-size="26" font-weight="900" fill="#fff" font-family="Arial">S</text>
+        </svg>
+      </div>
+      <div class="logo-text">
+        <div class="name">State Bank of India</div>
+        <div class="tagline">The Banker To Every Indian</div>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="search-bar">
+        <input type="text" placeholder="Search products, services..." />
+        <button>🔍</button>
+      </div>
+      <button class="btn-login" onclick="alert('Welcome to SBI! Our AI Assistant can help you. Click the chat icon →')">
+        🔐 Login
+      </button>
+    </div>
+  </header>
+
+  <!-- ── Main Nav ──────────────────────────────────────────── -->
+  <nav class="main-nav">
+    <ul>
+      <li>
+        <a href="#" class="active">Personal Banking</a>
+        <div class="dropdown">
+          <a href="#">Savings Account</a>
+          <a href="#">Current Account</a>
+          <a href="#">Fixed Deposit</a>
+          <a href="#">Recurring Deposit</a>
+          <a href="#">PMJDY Accounts</a>
+        </div>
+      </li>
+      <li>
+        <a href="#">Agriculture</a>
+        <div class="dropdown">
+          <a href="#">Kisan Credit Card</a>
+          <a href="#">Farm Mechanisation</a>
+          <a href="#">Land Development</a>
+        </div>
+      </li>
+      <li>
+        <a href="#">NRI Banking</a>
+        <div class="dropdown">
+          <a href="#">NRE Account</a>
+          <a href="#">NRO Account</a>
+          <a href="#">FCNR (B) Deposit</a>
+        </div>
+      </li>
+      <li>
+        <a href="#">Corporate Banking</a>
+        <div class="dropdown">
+          <a href="#">Loans</a>
+          <a href="#">Trade Finance</a>
+          <a href="#">SME</a>
+        </div>
+      </li>
+      <li>
+        <a href="#">Loans</a>
+        <div class="dropdown">
+          <a href="#">Home Loan</a>
+          <a href="#">Car Loan</a>
+          <a href="#">Education Loan</a>
+          <a href="#">Personal Loan</a>
+        </div>
+      </li>
+      <li>
+        <a href="#">Cards</a>
+        <div class="dropdown">
+          <a href="#">Debit Cards</a>
+          <a href="#">Credit Cards</a>
+          <a href="#">Prepaid Cards</a>
+        </div>
+      </li>
+      <li><a href="#">Investments</a></li>
+      <li><a href="#">Downloads</a></li>
+    </ul>
+  </nav>
+
+  <!-- ── Ticker ─────────────────────────────────────────────── -->
+  <div class="ticker-bar">
+    <div class="ticker-inner">
+      <span>📢 SBI Home Loan at 8.50% p.a. — Apply Now</span>
+      <span>📢 SBI FD Interest Rate revised — Up to 7.10% for Senior Citizens</span>
+      <span>📢 YONO App: Download for seamless mobile banking</span>
+      <span>📢 Fraud Alert: SBI never asks for OTP over phone</span>
+      <span>📢 SBI Home Loan at 8.50% p.a. — Apply Now</span>
+      <span>📢 SBI FD Interest Rate revised — Up to 7.10% for Senior Citizens</span>
+    </div>
+  </div>
+
+  <!-- ── Hero ───────────────────────────────────────────────── -->
+  <section class="hero">
+    <div class="hero-bg-circles">
+      <span></span>
+      <span></span>
+    </div>
+    <div class="hero-content">
+      <span class="hero-badge">🇮🇳 India's Most Trusted Bank</span>
+      <h1>Your Dreams.<br><span>Our Commitment.</span></h1>
+      <p>Over 500 million customers trust State Bank of India for their every banking need. Experience banking redefined — now with AI-powered support.</p>
+      <div class="hero-btns">
+        <button class="btn-hero-primary" onclick="alert('Opening Account Application...')">Open Account Now</button>
+        <button class="btn-hero-outline" onclick="alert('Redirecting to YONO SBI App...')">YONO Banking</button>
+      </div>
+    </div>
+    <div class="hero-visual">🏦</div>
+  </section>
+
+  <!-- ── Quick Services ────────────────────────────────────── -->
+  <div class="quick-services">
+    <ul>
+      <li><a href="#" class="active"><span class="qs-icon">💳</span> Cards</a></li>
+      <li><a href="#"><span class="qs-icon">🏠</span> Loans</a></li>
+      <li><a href="#"><span class="qs-icon">💰</span> Deposits</a></li>
+      <li><a href="#"><span class="qs-icon">📱</span> YONO</a></li>
+      <li><a href="#"><span class="qs-icon">🌐</span> Online SBI</a></li>
+      <li><a href="#"><span class="qs-icon">📊</span> Demat</a></li>
+      <li><a href="#"><span class="qs-icon">🛡️</span> Insurance</a></li>
+    </ul>
+  </div>
+
+  <!-- ── Rates Bar ──────────────────────────────────────────── -->
+  <div class="rates-bar">
+    <div>
+      <div class="label">Today's Key Rates</div>
+    </div>
+    <div class="rate-item">
+      <div class="rate-val">8.50%</div>
+      <div class="rate-name">Home Loan p.a.</div>
+    </div>
+    <div class="rate-item">
+      <div class="rate-val">7.10%</div>
+      <div class="rate-name">FD (Sr. Citizen)</div>
+    </div>
+    <div class="rate-item">
+      <div class="rate-val">6.80%</div>
+      <div class="rate-name">FD (Regular)</div>
+    </div>
+    <div class="rate-item">
+      <div class="rate-val">10.55%</div>
+      <div class="rate-name">Personal Loan</div>
+    </div>
+  </div>
+
+  <!-- ── Products ───────────────────────────────────────────── -->
+  <section class="products-section">
+    <div class="section-title">Our Popular <span>Products</span></div>
+    <div class="section-sub">Tailored financial products to meet all your banking needs</div>
+    <div class="products-grid">
+      <div class="product-card" onclick="window.open('#','_self')">
+        <div class="pc-icon">🏦</div>
+        <div class="pc-title">Savings Account</div>
+        <div class="pc-desc">Zero-balance options, easy account opening with Aadhaar & PAN.</div>
+        <span class="pc-link">Apply Now →</span>
+      </div>
+      <div class="product-card">
+        <div class="pc-icon">🏠</div>
+        <div class="pc-title">SBI Home Loan</div>
+        <div class="pc-desc">Lowest interest rates starting 8.50% p.a. Up to 30 year tenure.</div>
+        <span class="pc-link">Check Eligibility →</span>
+      </div>
+      <div class="product-card">
+        <div class="pc-icon">📈</div>
+        <div class="pc-title">Fixed Deposit</div>
+        <div class="pc-desc">Up to 7.10% p.a. for senior citizens. Flexible tenures from 7 days.</div>
+        <span class="pc-link">Open FD →</span>
+      </div>
+      <div class="product-card">
+        <div class="pc-icon">🔒</div>
+        <div class="pc-title">SBI Credit Card</div>
+        <div class="pc-desc">Cashback, travel rewards & fuel surcharge waivers. Apply in minutes.</div>
+        <span class="pc-link">Explore Cards →</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── News ───────────────────────────────────────────────── -->
+  <section class="news-section">
+    <div class="section-title">Latest <span>News</span></div>
+    <div class="section-sub">Stay informed with the latest from State Bank of India</div>
+    <div class="news-grid">
+      <div class="news-card">
+        <div class="news-img">📢</div>
+        <div class="news-body">
+          <div class="news-tag">Press Release</div>
+          <div class="news-title">SBI Revises FD Interest Rates for Q1 FY 2026–27</div>
+          <div class="news-date">March 28, 2026</div>
+        </div>
+      </div>
+      <div class="news-card">
+        <div class="news-img">📱</div>
+        <div class="news-body">
+          <div class="news-tag">Digital Banking</div>
+          <div class="news-title">YONO 2.0 Launches with Voice-First AI Banking Features</div>
+          <div class="news-date">March 25, 2026</div>
+        </div>
+      </div>
+      <div class="news-card">
+        <div class="news-img">🏆</div>
+        <div class="news-body">
+          <div class="news-tag">Awards</div>
+          <div class="news-title">SBI Wins 'Best Bank for Customer Innovation' at IBA Awards</div>
+          <div class="news-date">March 20, 2026</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Footer ─────────────────────────────────────────────── -->
+  <footer>
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <div class="footer-brand-logo">
+          <div class="logo-mini">S</div>
+          <span>State Bank of India</span>
+        </div>
+        <p>Established in 1955, SBI is India's largest public sector bank with over 22,000 branches across the country and a global presence in 31 countries.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Personal</h4>
+        <ul>
+          <li><a href="#">Savings Account</a></li>
+          <li><a href="#">Fixed Deposit</a></li>
+          <li><a href="#">Home Loan</a></li>
+          <li><a href="#">Credit Card</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Services</h4>
+        <ul>
+          <li><a href="#">YONO SBI</a></li>
+          <li><a href="#">Online SBI</a></li>
+          <li><a href="#">ATM Locator</a></li>
+          <li><a href="#">Branch Locator</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Corporate</h4>
+        <ul>
+          <li><a href="#">About SBI</a></li>
+          <li><a href="#">Investor Relations</a></li>
+          <li><a href="#">CSR</a></li>
+          <li><a href="#">Careers</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 State Bank of India. All Rights Reserved. | <a href="#" style="color:#9fd8f7">Privacy Policy</a> | <a href="#" style="color:#9fd8f7">Terms & Conditions</a></span>
+      <span>IFSC: SBIN0000001 | CIN: L64060TN2009GOI072791</span>
+    </div>
+  </footer>
+
+  <!-- ═══ BANKBOT WIDGET ═══════════════════════════════════════ -->
+  <script src="/static/js/widget-loader.js"></script>
+</body>
+</html>

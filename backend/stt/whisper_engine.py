@@ -102,6 +102,7 @@ class WhisperEngine:
 
             segments, info = self.model.transcribe(
                 tmp_path,
+                task="translate",
                 language=lang_override,
                 beam_size=self.cfg.WHISPER_BEAM,
                 vad_filter=self.cfg.WHISPER_VAD,

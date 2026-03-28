@@ -26,6 +26,31 @@
   --radius-xl: 24px;
 }
 
+/* ── Light Mode Token Overrides ────────────────────────────── */
+body.light-mode {
+  --navy:      #FFFFFF;
+  --navy2:     #F4F6F9;
+  --navy3:     #E2E8F0;
+  --panel:     #FFFFFF;
+  --white:     #111827;
+  --muted:     #64748B;
+  --border:    #E2E8F0;
+  --cyan:      #00A1E1; /* SBI Cyan */
+  --blue:      #003366; /* SBI Navy */
+}
+
+/* Light mode specific UI adjustments */
+body.light-mode .widget-header { background: var(--blue); }
+body.light-mode .widget-header .widget-title { color: #FFFFFF; }
+body.light-mode .widget-header .widget-close { color: #FFFFFF; opacity: 0.8; }
+body.light-mode .widget-header .widget-close:hover { opacity: 1; background: rgba(255,255,255,0.2); }
+body.light-mode .msg.bot { background: #F8FAFC; border: 1px solid #E2E8F0; color: #111827; }
+body.light-mode .msg.user { background: var(--cyan); color: #FFFFFF; }
+body.light-mode .chat-input { background: #FFFFFF; color: #111827; border: 1px solid #CBD5E1; }
+body.light-mode .mic-label { color: #475569; }
+body.light-mode .sample-tile { background: #F1F5F9; border: 1px solid #CBD5E1; color: #0F172A; }
+body.light-mode .icon { filter: drop-shadow(0 4px 12px rgba(0, 51, 102, 0.1)); }
+
 /* ── Reset ─────────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html { scroll-behavior: smooth; }
@@ -37,6 +62,15 @@ body {
   min-height: 100vh;
   overflow-x: hidden;
   line-height: 1.55;
+}
+
+body.light-mode .widget-theme-toggle {
+  filter: grayscale(100%) brightness(150%);
+}
+
+#bb-container.light-mode {
+  border: 1px solid #CBD5E1 !important;
+  background: #FFFFFF !important;
 }
 
 /* ── Animated background ───────────────────────────────────── */
@@ -601,7 +635,19 @@ body {
   background: var(--panel); border: 1px solid var(--border);
   border-radius: var(--radius-xl); padding: 24px;
 }
-.dash-card h3 { font-size: 16px; font-weight: 700; color: var(--white); margin-bottom: 16px; display: flex; align-items: center; gap: 8px;}
+.dash-card h3 { font-size: 16px; font-weight: 700; color: var(--white); margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+
+/* ── WIDGET MODE ADJUSTMENTS ────────────────────────────────── */
+@media (max-width: 450px) {
+  .conversation { padding: 12px; gap: 10px; }
+  .bubble { max-width: 85%; }
+  .stat-card { padding: 6px; }
+  .stat-value { font-size: 14px; }
+  .msg-meta { font-size: 9px; }
+  .model-bar { font-size: 10px; }
+  .mt-lbl { display: none; } /* Hide labels on tiny widths */
+}
+
 .dash-stats { display: flex; gap: 16px; }
 .dash-stat { flex: 1; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.05); padding: 16px; border-radius: var(--radius-md); text-align: center; }
 .d-val { display: block; font-size: 28px; font-weight: 800; color: var(--cyan); margin-bottom: 4px; }

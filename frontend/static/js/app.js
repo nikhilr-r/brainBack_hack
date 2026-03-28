@@ -135,7 +135,8 @@ const Recorder = (() => {
     UI.setRecordingState(true);
     Visualiser.start(STATE.stream);
     UI.setLabel("🔴 Recording… tap to stop", "active");
-    document.getElementById("teller-alert").classList.remove("visible");
+    const ta = document.getElementById("teller-alert");
+    if (ta) ta.classList.remove("visible");
   }
 
   function stop() {
@@ -287,7 +288,8 @@ const ResponseHandler = (() => {
       if (data.action !== "teller_alert" && data.action !== "no_speech") {
         clearTimeout(STATE.exitPromptTimer);
         STATE.exitPromptTimer = setTimeout(() => {
-          document.getElementById('exit-prompt').classList.add('visible');
+          const ep = document.getElementById('exit-prompt');
+          if (ep) ep.classList.add('visible');
         }, 5000);
       }
     };
@@ -301,13 +303,28 @@ const ResponseHandler = (() => {
     } else if ("speechSynthesis" in window) {
       window.speechSynthesis.cancel();
       const utterance = new SpeechSynthesisUtterance(data.bot_text);
-      const targetLang = data.lang === "hi" ? "hi" : "en";
-      utterance.lang = targetLang === "hi" ? "hi-IN" : "en-IN";
-      utterance.rate = 0.95;
 
-      // Try to find the best matching voice for the language
+      // Map backend lang codes → BCP-47 locales for browser SpeechSynthesis
+      const LANG_MAP = {
+        "hi": "hi-IN",  // Hindi
+        "mr": "mr-IN",  // Marathi
+        "gu": "gu-IN",  // Gujarati
+        "ta": "ta-IN",  // Tamil
+        "te": "te-IN",  // Telugu
+        "bn": "bn-IN",  // Bengali
+        "pa": "pa-IN",  // Punjabi
+        "ur": "ur-PK",  // Urdu
+        "en": "en-IN",  // English (India accent)
+      };
+      const bcp47 = LANG_MAP[data.lang] || "en-IN";
+      utterance.lang = bcp47;
+      utterance.rate = 0.92;
+
+      // Find the best matching installed voice for this language
       const voices = window.speechSynthesis.getVoices();
-      const matchVoice = voices.find((v) => v.lang.startsWith(targetLang));
+      const langPrefix = (data.lang || "en").substring(0, 2);
+      const matchVoice = voices.find((v) => v.lang.startsWith(langPrefix))
+                      || voices.find((v) => v.lang.startsWith("en"));
       if (matchVoice) utterance.voice = matchVoice;
 
       window.speechSynthesis.speak(utterance);
@@ -316,7 +333,8 @@ const ResponseHandler = (() => {
     }
 
     // Update debug panel
-    document.getElementById("debug-panel").textContent = JSON.stringify(
+    const debugEl = document.getElementById("debug-panel");
+    if (debugEl) debugEl.textContent = JSON.stringify(
       {
         user_text: data.user_text,
         bot_text: data.bot_text,
@@ -413,6 +431,7 @@ const UI = (() => {
   function showTellerAlert(msg) {
     const el = document.getElementById("teller-alert");
     const body = document.getElementById("teller-msg");
+    if (!el || !body) return;
     body.textContent = msg;
     el.classList.add("visible");
     setTimeout(() => el.classList.remove("visible"), 14000);
@@ -420,18 +439,21 @@ const UI = (() => {
 
   function setRecordingState(recording) {
     const btn = document.getElementById("mic-btn");
-    btn.classList.toggle("recording", recording);
+    if (btn) btn.classList.toggle("recording", recording);
     ["mic-ring-1", "mic-ring-2", "mic-ring-3"].forEach((id) => {
-      document.getElementById(id).classList.toggle("off", !recording);
+      const el = document.getElementById(id);
+      if (el) el.classList.toggle("off", !recording);
     });
   }
 
   function setProcessing(processing) {
     STATE.processing = processing;
     const btn = document.getElementById("mic-btn");
-    btn.classList.toggle("processing", processing);
-    btn.disabled = processing;
-    btn.textContent = processing ? "⏳" : "🎙️";
+    if (btn) {
+      btn.classList.toggle("processing", processing);
+      btn.disabled = processing;
+      btn.textContent = processing ? "⏳" : "🎙️";
+    }
 
     const chatInput = document.getElementById("chat-input");
     const sendBtn = document.getElementById("send-btn");
@@ -441,15 +463,20 @@ const UI = (() => {
 
   function setLabel(html, type) {
     const el = document.getElementById("mic-label");
+    if (!el) return;
     el.innerHTML = html;
     el.className = `mic-label${type ? " " + type : ""}`;
   }
 
   function updateStats({ turns, conf, lang, latency }) {
-    document.getElementById("stat-turns").textContent = turns;
-    document.getElementById("stat-conf").textContent = conf;
-    document.getElementById("stat-lang").textContent = lang;
-    document.getElementById("stat-latency").textContent = latency;
+    const sTurns = document.getElementById("stat-turns");
+    const sConf = document.getElementById("stat-conf");
+    const sLang = document.getElementById("stat-lang");
+    const sLat = document.getElementById("stat-latency");
+    if (sTurns) sTurns.textContent = turns;
+    if (sConf) sConf.textContent = conf;
+    if (sLang) sLang.textContent = lang;
+    if (sLat) sLat.textContent = latency;
   }
 
   return {
@@ -506,22 +533,21 @@ const StatusBar = (() => {
 
 window.startSession = function(lang) {
   STATE.sessionId = crypto.randomUUID();
-  STATE.langOverride = lang;
+  // Always use auto-detect — Whisper detects the language from the user's speech.
+  // The 'lang' button in the welcome screen only sets the UI greeting language.
+  STATE.langOverride = "auto";
   STATE.turns = 0;
   
-  document.getElementById('welcome-overlay').style.display = 'none';
-  document.getElementById('main-ui').style.display = 'flex';
+  const overlay = document.getElementById('welcome-overlay');
+  const mainUi = document.getElementById('main-ui');
+  if (overlay) overlay.style.display = 'none';
+  if (mainUi) mainUi.style.display = 'flex';
   
-  const modes = [
-    { id: "auto", label: "🌐 Auto-Detect" },
-    { id: "hi",   label: "🇮🇳 Hindi Only" },
-    { id: "en",   label: "🇬🇧 English Only" }
-  ];
-  const selectedMode = modes.find(m => m.id === lang) || modes[0];
-  document.getElementById("lang-badge").textContent = selectedMode.label;
+  // Update badge to show Auto-Detect is always active
+  document.getElementById("lang-badge").textContent = "🌐 Auto-Detect";
   
-  // Optional: prompt the user to speak
-  UI.addMessage("bot", lang === 'hi' ? "नमस्ते! मैं आपकी कैसे मदद कर सकता हूँ?" : "Hello! How can I help you?", null, false);
+  // Greet in both Hindi & English so any user feels welcome
+  UI.addMessage("bot", "नमस्ते! / Hello! How can I help you today?", null, false);
 };
 
 window.endSession = async function() {
@@ -529,7 +555,8 @@ window.endSession = async function() {
 };
 
 window.hideExitPrompt = function() {
-  document.getElementById('exit-prompt').classList.remove('visible');
+  const ep = document.getElementById('exit-prompt');
+  if (ep) ep.classList.remove('visible');
   clearTimeout(STATE.exitPromptTimer);
 };
 
@@ -556,6 +583,11 @@ window.askSample = function (text) {
   // Show user message immediately, then query
   UI.addMessage("user", text, null, false);
   API.sendText(text);
+};
+
+window.toggleTheme = function() {
+  document.body.classList.toggle('light-mode');
+  window.parent.postMessage('toggle-theme', '*');
 };
 
 window.submitTextQuery = function () {

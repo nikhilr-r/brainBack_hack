@@ -5,12 +5,12 @@ Core voice pipeline — orchestrates all components end to end.
 
 Flow:
   audio_bytes / text
-      → STT (Whisper)
-      → Confidence check
-      → RAG retrieval (ChromaDB)
+      → STT (Whisper)                  → detects user language
+      → RAG retrieval (FAISS)          → always searches in English
       → Confidence gate
-      → LLM generation (Ollama)
-      → TTS (pyttsx3)
+      → LLM generation (Ollama)        → always generates in English
+      → Translate (deep-translator)    → English → user's language
+      → TTS
       → PipelineResult
 
 This module has NO Flask dependency — it can be unit-tested standalone.
@@ -23,6 +23,7 @@ from dataclasses import dataclass, field
 from typing import Optional
 
 from config.prompts import SYSTEM_PROMPT, FALLBACK_MESSAGES
+from backend.translate import translate_response
 
 log = logging.getLogger("bankbot.pipeline")
 
@@ -346,10 +347,12 @@ class VoicePipeline:
         t0 = time.time()
         print(f"\n\033[96m[0/4] Audio received ({len(audio_bytes)} bytes). Running Whisper STT...\033[0m")
         
-        # ALWAYS transcribe in English — Hindi banking speech uses English terms
-        # (home loan, KYC, FD, account, etc.) which Whisper handles better in English mode.
-        # The UI language toggle only controls LLM OUTPUT language, not STT.
-        stt_result = self.stt.transcribe(audio_bytes, force_language="en")
+        # Let Whisper auto-detect language (Hindi, English, Marathi, etc.)
+        # `target_lang` from UI is only used as an override when the user manually selected a language
+        stt_result = self.stt.transcribe(
+            audio_bytes,
+            force_language=target_lang if target_lang != "auto" else "auto"
+        )
 
         if not stt_result.success:
             print(f"\033[91m[X] STT Failed -> No speech detected (returned to frontend)\033[0m\n")
@@ -360,8 +363,11 @@ class VoicePipeline:
                 latency_s=round(time.time() - t0, 2),
             )
 
-        # Use target_lang for LLM output; STT is always English
-        lang = "en" if target_lang == "auto" else target_lang
+        # Use the language Whisper actually detected as the OUTPUT language.
+        # If the user speaks Hindi, lang="hi" -> response will be in Hindi.
+        # If the user speaks English, lang="en" -> response will be in English.
+        lang = stt_result.language or "en"
+        print(f"\033[96m    [LANG] Detected language: {lang}\033[0m")
 
         return self._run(
             session_id=session_id,
@@ -459,46 +465,66 @@ class VoicePipeline:
             session.add_turn(user_text, bot_text)
             print(f"\033[92m[3/4] RAG-Direct Response: '{bot_text[:100]}...'\033[0m")
         else:
-            print(f"\033[93m[2/4] Confidence OK ({overall_conf:.2f}). Starting LLM inference...\033[0m")
-            
-            # Resolve automatic target constraints explicitly
-            active_lang = lang if target_lang == "auto" else target_lang
+            # Resolve language: ALWAYS use STT-detected language.
+            # The UI override is only used when STT is uncertain (lang=="auto").
+            # This prevents forcing Hindi when user actually spoke English.
+            if lang in ("hi", "en"):
+                active_lang = lang        # STT knows best
+            elif target_lang in ("hi", "en"):
+                active_lang = target_lang # Fall back to UI override
+            else:
+                active_lang = "en"        # Default to English
+
+            # phi3:mini cannot generate proper Hindi — fall back to English
+            llm_name = (self.llm.active_model or "").lower()
+            if active_lang == "hi" and ("phi3" in llm_name or "phi" in llm_name):
+                print("\033[93m    [LANG] phi3 can't do Hindi reliably — using English\033[0m")
+                active_lang = "en"
 
             if active_lang == "hi":
                 lang_rule = "CRITICAL RULE: Respond EXCLUSIVELY in HINDI. Your entire response MUST be written in Devanagari script."
             else:
-                lang_rule = "CRITICAL RULE: Respond EXCLUSIVELY in ENGLISH. Your entire response MUST stringently be written in English characters."
+                lang_rule = "CRITICAL RULE: Respond EXCLUSIVELY in ENGLISH. Your entire response MUST be written in English characters only."
 
-            # 3. LLM Generation
+            # 3. LLM Generation — send only the single best RAG doc
             filled_prompt = SYSTEM_PROMPT.format(
-                context=rag_result.context,
+                context=rag_result.top_context,   # ← only #1 doc, prevents confusion
                 language_rule=lang_rule,
             )
             print(f"\033[90m    [LLM] Context sent to model:\033[0m")
-            print(f"\033[90m    {rag_result.context[:200]}...\033[0m")
+            print(f"\033[90m    {rag_result.top_context}\033[0m")
             print(f"\033[90m    [LLM] User message to model: '{corrected_text}'\033[0m")
             try:
-                bot_text = self.llm.generate(
+                # LLM always generates in English — we translate AFTER
+                bot_text_en = self.llm.generate(
                     system_prompt=filled_prompt,
                     user_text=corrected_text,
-                    history=session.get_history_dicts(self.cfg.SESSION_MAX_TURNS),
+                    history=[],  # No history: saves tokens, prevents 500 OOM
                 )
-                
-                # Append standard "Any more questions?" prompt
-                if active_lang == "hi":
-                    bot_text += " क्या आपके पास कोई और सवाल है?"
-                else:
-                    bot_text += " Do you have any other questions?"
-                    
-                print(f"\033[92m[3/4] LLM Response: '{bot_text}'\033[0m")
+                bot_text_en += " Do you have any other questions?"
+
+                # Translate English → user's language
+                print(f"\033[90m    [TRANSLATE] en → {lang}\033[0m")
+                bot_text = translate_response(bot_text_en, lang)
+
+                print(f"\033[92m[3/4] LLM Response ({lang}): '{bot_text}'\033[0m")
                 action      = "answer"
                 context_out = rag_result.context
                 session.add_turn(user_text, bot_text)
             except Exception as e:
                 log.error("LLM error: %s", e)
-                bot_text    = FALLBACK_MESSAGES.get(lang, FALLBACK_MESSAGES["en"])
-                action      = "teller_alert"
-                context_out = ""
+                print(f"\033[91m    [LLM] Error — falling back to RAG context directly\033[0m")
+                # Use top RAG doc directly, then translate
+                if rag_result and rag_result.top_context:
+                    bot_text_en = rag_result.top_context.lstrip('• ')
+                    bot_text    = translate_response(bot_text_en, lang)
+                    action      = "answer"
+                    context_out = rag_result.context
+                    session.add_turn(user_text, bot_text)
+                else:
+                    bot_text    = FALLBACK_MESSAGES.get(lang, FALLBACK_MESSAGES["en"])
+                    action      = "teller_alert"
+                    context_out = ""
 
         # 5. TTS
         print("\033[95m[4/4] Bypassing Python Audio Compression -> Transferring to Browser TTS\033[0m")

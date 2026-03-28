@@ -1,0 +1,225 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>BankBot Widget</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700;800&family=Noto+Sans+Devanagari:wght@400;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/static/css/style.css" />
+  <style>
+    /* Widget: entire UI is 100vh, no overflow, flex column */
+    html, body {
+      height: 100%; width: 100%;
+      overflow: hidden; margin: 0; padding: 0;
+      background: #060E1E;
+    }
+
+    /* Widget shell: header + content fill height */
+    #widget-shell {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+
+    /* Mini header */
+    .widget-header {
+      flex-shrink: 0;
+      background: var(--navy2);
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+    }
+    .widget-title {
+      font-size: 13px; font-weight: 700; color: var(--cyan);
+      display: flex; align-items: center; gap: 6px;
+    }
+    .widget-close {
+      cursor: pointer; color: var(--muted); font-size: 20px;
+      line-height: 1; padding: 2px 6px; border-radius: 4px;
+      transition: background 0.15s;
+    }
+    .widget-close:hover { background: rgba(255,255,255,0.1); }
+
+    /* Content area: fills remaining space */
+    #widget-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: 0; /* critical for flex child to shrink */
+      overflow: hidden;
+    }
+
+    /* Reset page-level layout for widget mode */
+    .page {
+      padding: 0 !important;
+      max-width: 100% !important;
+      height: 100% !important;
+      display: flex !important;
+      flex-direction: column !important;
+      gap: 0 !important;
+    }
+
+    /* Hide unneeded UI */
+    .header, .top-nav, .bg-radial, .bg-grid,
+    .landing-hero, .dashboard-grid, .offline-banner,
+    .kiosk-sidebar, .bottom-row, .greeting { display: none !important; }
+
+    /* kiosk view takes all available space */
+    .view { display: none !important; }
+    #kiosk-view {
+      display: flex !important;
+      flex-direction: column !important;
+      flex: 1 !important;
+      min-height: 0 !important;
+      height: 100% !important;
+    }
+    .kiosk-grid {
+      display: flex !important;
+      flex-direction: column !important;
+      flex: 1 !important;
+      min-height: 0 !important;
+      margin-top: 0 !important;
+    }
+    .kiosk-main {
+      display: flex !important;
+      flex-direction: column !important;
+      flex: 1 !important;
+      min-height: 0 !important;
+    }
+
+    /* Card fills space */
+    .card {
+      border-radius: 0 !important;
+      border: none !important;
+      box-shadow: none !important;
+      display: flex !important;
+      flex-direction: column !important;
+      flex: 1 !important;
+      min-height: 0 !important;
+      overflow: hidden !important;
+    }
+
+    /* Conversation scrolls within its space */
+    .conversation {
+      flex: 1 !important;
+      min-height: 0 !important;
+      max-height: none !important;
+    }
+
+    /* Voice controls: fixed height */
+    .voice-controls {
+      flex-shrink: 0 !important;
+      padding: 10px 16px !important;
+      gap: 8px !important;
+    }
+    .waveform { height: 28px !important; }
+    .mic-btn { width: 58px !important; height: 58px !important; font-size: 22px !important; }
+    .mic-ring { width: 72px !important; height: 72px !important; }
+    .mic-label { font-size: 11px !important; }
+
+    /* Text chat area: always visible at bottom */
+    .text-chat-area {
+      flex-shrink: 0 !important;
+      padding: 8px 12px 12px !important;
+    }
+    .chat-input { padding: 10px 14px !important; font-size: 13px !important; }
+    .btn-send { width: 42px !important; height: 42px !important; }
+
+    /* Model bar */
+    .model-bar.mt-sm {
+      flex-shrink: 0 !important;
+      border-radius: 0 !important;
+      border-left: 0 !important;
+      border-right: 0 !important;
+      font-size: 10px !important;
+      padding: 5px 12px !important;
+    }
+  </style>
+</head>
+<body>
+  <div id="widget-shell">
+    <!-- Mini Header -->
+    <div class="widget-header">
+      <div class="widget-title">
+        <span>🏦</span> Nexus Smart Assistant <span style="color:var(--green);font-size:9px;">● LIVE</span>
+      </div>
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <div class="widget-theme-toggle" onclick="toggleTheme()" title="Toggle Theme" style="cursor:pointer; font-size:16px;">🌓</div>
+        <div class="widget-close" onclick="window.parent.postMessage('close-widget','*')">×</div>
+      </div>
+    </div>
+
+    <!-- Bot Content Area -->
+    <div id="widget-content">
+      <main class="page">
+        <div id="kiosk-view" class="view active">
+          <div class="kiosk-grid">
+            <div class="kiosk-main">
+              <div class="card">
+                <!-- Conversation -->
+                <section class="conversation" id="conversation" aria-live="polite">
+                  <div class="empty-state" id="empty-state">
+                    <div class="icon">🎙️</div>
+                    <p>How can I help you today?</p>
+                    <div class="sample-tiles" style="margin-top:8px">
+                      <button class="sample-tile" onclick="askSample('FD interest rate kya hai')">📈 FD rates</button>
+                      <button class="sample-tile" onclick="askSample('home loan interest rate')">🏠 Home loan</button>
+                      <button class="sample-tile" onclick="askSample('branch timing kya hai')">🕐 Branch hours</button>
+                    </div>
+                  </div>
+                </section>
+
+                <!-- Thinking indicator -->
+                <div class="thinking-wrap" id="thinking-wrap">
+                  <div class="msg bot">
+                    <div class="avatar">🤖</div>
+                    <div class="thinking-dots">
+                      <div class="thinking-dot"></div>
+                      <div class="thinking-dot"></div>
+                      <div class="thinking-dot"></div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Voice Controls -->
+                <div class="voice-controls">
+                  <div class="waveform" id="waveform"></div>
+                  <div class="mic-wrap">
+                    <div class="mic-ring off" id="mic-ring-1"></div>
+                    <div class="mic-ring off" id="mic-ring-2"></div>
+                    <div class="mic-ring off" id="mic-ring-3"></div>
+                    <button class="mic-btn" id="mic-btn" onclick="toggleMic()">🎙️</button>
+                  </div>
+                  <div class="mic-label" id="mic-label">Tap to speak</div>
+                </div>
+
+                <!-- Text Input -->
+                <div class="text-chat-area">
+                  <input type="text" id="chat-input" class="chat-input" placeholder="Type your question..." autocomplete="off" />
+                  <button class="btn-send" id="send-btn">✍️</button>
+                </div>
+              </div><!-- /card -->
+            </div><!-- /kiosk-main -->
+          </div><!-- /kiosk-grid -->
+        </div><!-- /kiosk-view -->
+
+        <!-- Teller alert (hidden by default) -->
+        <div class="teller-alert" id="teller-alert" style="margin:8px">
+          <div class="teller-icon">🔔</div>
+          <div class="teller-body">
+            <h3>Teller Notified</h3>
+            <p id="teller-msg">Please proceed to the counter.</p>
+          </div>
+        </div>
+      </main>
+    </div><!-- /widget-content -->
+  </div><!-- /widget-shell -->
+
+  <audio id="audio-player" style="display:none"></audio>
+  <script src="/static/js/app.js" defer></script>
+</body>
+</html>

@@ -21,7 +21,8 @@ log = logging.getLogger("bankbot.rag")
 class RAGResult:
     documents: List[str]
     similarity: float
-    context: str
+    context: str        # All docs (for fallback / display)
+    top_context: str    # Only the best doc (for LLM — prevents confusion)
 
 
 class Retriever:
@@ -74,5 +75,6 @@ class Retriever:
         return RAGResult(
             documents=docs,
             similarity=best_sim,
-            context=context
+            context=context,
+            top_context=f"• {docs[0]}" if docs else "",  # Only #1 doc for LLM
         )

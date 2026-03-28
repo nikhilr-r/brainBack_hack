@@ -105,8 +105,8 @@ class OllamaClient:
             "messages": messages,
             "stream":  False,
             "options": {
-                "num_ctx":        1024,   # Enough to hold system prompt + RAG context
-                "num_predict":    150,    # Enough for 2-3 complete sentences
+                "num_ctx":        512,    # Tight budget: prompt + 1 RAG doc + answer
+                "num_predict":    80,     # ~2 sentences - ample for banking answers
                 "num_thread":     8,      # Use all CPU cores
                 "temperature":    self.cfg.LLM_TEMPERATURE,
                 "top_p":          self.cfg.LLM_TOP_P,

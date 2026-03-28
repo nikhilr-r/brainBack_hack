@@ -19,7 +19,7 @@ class Settings:
     WHISPER_DEVICE   = "cpu"       # cpu | cuda
     WHISPER_COMPUTE  = "int8"      # int8 | float16 | float32
     WHISPER_LANGUAGE = None         # None = auto-detect (enables Hindi, Marathi, English)
-    WHISPER_BEAM     = 3           # Reduced from 5 for faster inference
+    WHISPER_BEAM     = 1           # Reduced to 1 for massive CPU speedup (Greedy decoding)
     WHISPER_VAD      = True        # Re-enabled: filters noise/silence hallucinations
     WHISPER_PROMPT   = (
         "Bank account, savings account, current account, fixed deposit, FD, "
@@ -31,7 +31,7 @@ class Settings:
         "Atal Pension, PPF, NPS, locker, branch timing, complaint, nominee, "
         "open account, close account, transfer money, check balance"
     )
-    WHISPER_DENOISE    = True        # Elite: Apply RNNoise/Noisereduce before STT
+    WHISPER_DENOISE    = False       # Disabled: was causing 60+ second STT latency on CPU
 
     # ── LLM (Ollama) ──────────────────────────────────────────
     OLLAMA_HOST    = "http://localhost:11434"
@@ -49,7 +49,7 @@ class Settings:
     TTS_RATE         = 155         # words per minute (130=slow, 175=fast)
     TTS_VOLUME       = 0.95
     TTS_ENABLE_CACHE = True        # cache rendered WAV files to disk
-    TTS_ENGINE       = "elite"     # elite (Sherpa-ONNX) | basic (pyttsx3)
+    TTS_ENGINE       = "basic"    # basic (pyttsx3) | elite (Sherpa-ONNX) | coqui (Python<3.12 only)
     
     # Elite TTS: Maps language code -> extracted model FOLDER name
     # Each folder contains: model.onnx + tokens.txt
