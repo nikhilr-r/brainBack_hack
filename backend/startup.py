@@ -22,7 +22,7 @@ def run_startup_checks(cfg) -> None:
     from backend.stt     import WhisperEngine
     from backend.rag     import Embedder, Retriever
     from backend.llm     import OllamaClient
-    from backend.tts     import TTSEngine
+    from backend.tts     import TTSEngine, EliteTTSEngine
     from backend.session import SessionManager
     from backend.pipeline import VoicePipeline
     from config.knowledge_base import BANK_KNOWLEDGE
@@ -61,10 +61,33 @@ def run_startup_checks(cfg) -> None:
 
     # ── 4. TTS ────────────────────────────────────────────────
     print("  [4/5] Initialising TTS...", end=" ", flush=True)
-    tts = TTSEngine(cfg)
+    tts = None
+    if cfg.TTS_ENGINE == "elite":
+        elite = EliteTTSEngine(cfg)
+        try:
+            elite.load()
+        except Exception:
+            pass
+        
+        if elite._models:
+            # At least one language model loaded ✅
+            tts = elite
+            engine_name = f"Sherpa-ONNX Elite ({list(elite._models.keys())})"
+        else:
+            # No models downloaded → fallback silently to pyttsx3
+            print("\n  [4/5] ⚠️  Elite TTS models not found → falling back to pyttsx3", flush=True)
+            print("         └─ Run: py scripts/download_elite_models.py  (to get HD voices)", flush=True)
+            print("  [4/5]", end=" ", flush=True)
+            tts = TTSEngine(cfg)
+            engine_name = "pyttsx3 (Fallback)"
+    else:
+        tts = TTSEngine(cfg)
+        engine_name = "pyttsx3 (Basic)"
+
     try:
-        tts.load()
-        print("✅")
+        if not hasattr(tts, "_models"):  # basic TTSEngine needs load()
+            tts.load()
+        print(f"✅  ({engine_name})")
     except Exception as e:
         print(f"⚠️   ({e})")   # TTS failure is non-fatal
 
@@ -105,8 +128,8 @@ def run_startup_checks(cfg) -> None:
 
     print()
     print(f"  LLM   : {model or 'not loaded'}")
-    print(f"  STT   : faster-whisper/{cfg.WHISPER_MODEL}")
-    print(f"  TTS   : pyttsx3 (offline system voices)")
+    print(f"  STT   : faster-whisper/{cfg.WHISPER_MODEL} (+ Denoise)" if cfg.WHISPER_DENOISE else f"  STT   : faster-whisper/{cfg.WHISPER_MODEL}")
+    print(f"  TTS   : {engine_name}")
     print(f"  KB    : {len(BANK_KNOWLEDGE)} banking FAQ entries")
     print(f"  URL   : http://localhost:5000")
     print()

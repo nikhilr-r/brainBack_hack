@@ -88,6 +88,49 @@ def query_text():
     return jsonify(result.to_dict())
 
 
+# ── POST /api/feedback ────────────────────────────────────────
+
+@voice_bp.route("/feedback", methods=["POST"])
+def submit_feedback():
+    """
+    Accept like/dislike feedback on a bot response.
+    On 'like': add query→response to fast-path cache for future instant answers.
+    On 'dislike': log only, do not cache.
+    """
+    from backend.pipeline import FAST_PATH_CACHE, FAST_PATH_KEYWORDS
+    body = request.get_json(force=True) or {}
+    user_text = (body.get("user_text") or "").strip()
+    bot_text  = (body.get("bot_text") or "").strip()
+    feedback  = body.get("feedback", "")  # "like" or "dislike"
+    lang      = body.get("lang", "en")
+
+    if not user_text or not bot_text or feedback not in ("like", "dislike"):
+        return jsonify({"error": "Invalid feedback payload"}), 400
+
+    if feedback == "like":
+        # Create a cache key from the user query (lowercase, stripped)
+        cache_key = user_text.lower().strip(" .,?!;:'\"")
+        # Add to in-memory fast-path cache
+        if cache_key not in FAST_PATH_CACHE:
+            FAST_PATH_CACHE[cache_key] = {}
+        FAST_PATH_CACHE[cache_key][lang] = bot_text
+        # Also add strong keywords so it can be fuzzy-matched
+        words = [w for w in cache_key.split() if len(w) > 2]
+        # Use a 3-word phrase as a strong keyword
+        if len(words) >= 3:
+            phrase = " ".join(words[:4])
+            FAST_PATH_KEYWORDS[cache_key] = {"strong": [phrase, cache_key], "weak": []}
+        else:
+            FAST_PATH_KEYWORDS[cache_key] = {"strong": [cache_key], "weak": []}
+        log.info("📌 Cache updated from user feedback: '%s' -> '%s'", cache_key[:40], bot_text[:60])
+        print(f"\033[92m[FEEDBACK] ✅ Liked & Cached: '{cache_key[:40]}'\033[0m")
+    else:
+        log.info("👎 Disliked response for: '%s'", user_text[:40])
+        print(f"\033[91m[FEEDBACK] 👎 Disliked: '{user_text[:40]}'\033[0m")
+
+    return jsonify({"status": "ok", "feedback": feedback})
+
+
 # ── POST /api/reset ───────────────────────────────────────────
 
 @voice_bp.route("/reset", methods=["POST"])

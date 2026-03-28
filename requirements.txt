@@ -1,23 +1,30 @@
-# BrainBack.AI — BankBot (Fully Offline)
+# 🏦 BrainBack.AI — BankBot (Fully Offline Elite Architecture)
+# Team AlgoNexus | PS-02 | Hackathon Edition
 # Install: pip install -r requirements.txt
-#
-# System deps (install before pip):
-#   Ubuntu/Debian : sudo apt install ffmpeg espeak-ng espeak-ng-data
-#   macOS         : brew install ffmpeg espeak
-#   Windows       : pyttsx3 uses SAPI5 natively — ffmpeg from ffmpeg.org
 
+# ── Core Backend
 flask==3.0.3
-faster-whisper==1.0.3
-sentence-transformers==3.0.1
-faiss-cpu==1.8.0
-pyttsx3==2.99
 numpy==1.26.4
+scipy==1.12.0
 soundfile==0.12.1
 
-# ── LLM: Ollama is a standalone binary, not a pip package.
-# Install separately:
-#   Linux/Mac : curl -fsSL https://ollama.com/install.sh | sh
-#   Windows   : https://ollama.com/download
-# Then pull a model (once, needs internet):
-#   ollama pull phi3:mini      # 2.3 GB — recommended
-#   ollama pull gemma2:2b      # 1.6 GB — lighter alternative
+# ── Elite STT (Whisper + Noise Reduction)
+faster-whisper==1.0.3
+noisereduce==3.0.1
+huggingface_hub[hf_xet]
+
+# ── Elite RAG (FAISS + Embeddings)
+sentence-transformers==3.0.1
+faiss-cpu==1.8.0
+
+# ── Elite TTS (Sherpa-ONNX)
+# High-fidelity offline Indic speech
+sherpa-onnx==1.10.15
+
+# ── Basic TTS (Fallback)
+pyttsx3==2.99
+
+# ── 💡 NOTE: LLM (Ollama) is a standalone binary.
+# 1. Install from: https://ollama.com/download
+# 2. Run: ollama pull gemma2:2b
+# 3. Then run: py run.py
